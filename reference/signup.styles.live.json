@@ -1,0 +1,110 @@
+{
+  "html": {
+    "bg": "rgb(10, 10, 10)",
+    "color": "rgb(244, 244, 245)"
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "cls": "w-full bg-gray-800/80 rounded-xl p-3 text-white placeholder-gray-400 border border-gray-600 focus:border-red-500/50 focu",
+      "box": {
+        "x": 529,
+        "y": 875,
+        "w": 382,
+        "h": 46
+      },
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(31, 41, 55, 0.8)",
+      "font": "Inter",
+      "fs": "14px",
+      "radius": "12px",
+      "border": "rgb(75, 85, 99)",
+      "pad": "12px"
+    },
+    {
+      "tag": "INPUT",
+      "cls": "w-full bg-gray-800/80 rounded-xl p-3 text-white placeholder-gray-400 border border-gray-600 focus:border-red-500/50 focu",
+      "box": {
+        "x": 529,
+        "y": 961,
+        "w": 382,
+        "h": 46
+      },
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(31, 41, 55, 0.8)",
+      "font": "Inter",
+      "fs": "14px",
+      "radius": "12px",
+      "border": "rgb(75, 85, 99)",
+      "pad": "12px 40px 12px 12px"
+    },
+    {
+      "tag": "INPUT",
+      "cls": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "font": "Inter",
+      "fs": "16px",
+      "radius": "0px",
+      "border": "rgb(229, 231, 235)",
+      "pad": "0px"
+    },
+    {
+      "tag": "INPUT",
+      "cls": "h-4 w-4 rounded bg-black border-2 border-amber-400 text-amber-400 focus:ring-amber-400 cursor-pointer",
+      "box": {
+        "x": 1054,
+        "y": 3318,
+        "w": 16,
+        "h": 16
+      },
+      "color": "rgb(251, 191, 36)",
+      "bg": "rgb(0, 0, 0)",
+      "font": "Inter",
+      "fs": "14px",
+      "radius": "0px",
+      "border": "rgb(251, 191, 36)",
+      "pad": "0px"
+    }
+  ],
+  "signinBtn": {
+    "tag": "BUTTON",
+    "cls": "w-full p-3 btn-primary rounded-xl text-sm disabled:bg-gray-700 disabled:cursor-not-allowed disabled:shadow-none disabled",
+    "box": {
+      "x": 529,
+      "y": 1182,
+      "w": 382,
+      "h": 44
+    },
+    "color": "rgb(255, 255, 255)",
+    "bg": "rgb(255, 0, 0)",
+    "font": "Inter",
+    "fs": "14px",
+    "radius": "12px",
+    "border": "rgb(229, 231, 235)",
+    "pad": "12px"
+  },
+  "heading": {
+    "tag": "DIV",
+    "cls": "",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 4596
+    },
+    "color": "rgb(244, 244, 245)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "font": "Inter",
+    "fs": "16px",
+    "radius": "0px",
+    "border": "rgb(229, 231, 235)",
+    "pad": "0px"
+  }
+}

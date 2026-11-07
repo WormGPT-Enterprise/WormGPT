@@ -1,0 +1,141 @@
+# WormGPT — pamięć projektu
+
+## Czym jest
+Lokalna aplikacja web (FastAPI + statyczny frontend) rozmawiająca z modelami Ollama.
+UI odwzorowany 1:1 na https://wormgpt.ai/chat. Użytkownik mówi po polsku.
+
+## Uruchomienie
+```
+pip install -r requirements.txt
+OLLAMA_HOST=http://127.0.0.1:11434 python3 -m uvicorn app.main:app --host 0.0.0.0 --port 12000
+```
+Backend: `app/main.py` (`/api/models`, `/api/chat`, `/api/version`, `/api/health`,
+`/api/venice/status`, `/api/venice/models`).
+Frontend: `app/static/{index.html,style.css,app.js}` — bez zależności zewnętrznych,
+ikony jako sprite SVG (lucide), brak CDN.
+
+## Venice API (opcjonalny drugi provider) — od 2026-11-01
+- `app/venice_client.py`: `list_models`, `check_access`, `stream_chat`,
+  `resolve_model` (aliasy `worm-*` -> realne modele Venice; `ENGINE_ALIASES`).
+- Klucz tylko przez `VENICE_API_KEY` w `.env` (patrz `.env.example`). Backend
+  sprawdza klucz i saldo (`GET /api_keys/rate_limits`, NIE `/models` — ten
+  zwraca 200 bez klucza, czyli fałszywy pozytyw).
+- `POST /api/chat` przyjmuje `provider` = `ollama` (domyślnie) albo `venice`.
+  Kontrakt `/api/models` pozostaje bez zmian.
+- Frontend: silniki Venice są widoczne w menu Silnika, ale `disabled`, dopóki
+  brak klucza LUB saldo = 0. Wtedy komunikat z linkiem do doładowania.
+- Stan środowiska: zależności trzeba doinstalować (`pip install -r requirements.txt`),
+  testy `python3 -m pytest -q` -> 37 przechodzi. Port podglądu UI: 12000 / 12001.
+- PUŁAPKA NARZĘDZIOWA: `terminal`/`file_editor` z długimi argumentami (duży
+  heredoc, długi `new_str`) gubią argumenty (puste `{}`) i zwracają błąd
+  walidacji. Edytować małymi porcjami; szczegóły w daily logu.
+
+## Backend API Platform (`/api/platform/*`) — od 2026-11-02
+Klon wormgpt.co (FastAPI + NVIDIA NIM) ma panel `/platform` (klucze API,
+usage, logi, billing). Frontend woła `/api/platform/keys` (GET/POST/PATCH/DELETE)
+oraz `usage|logs|billing`. BRAK tych endpointów = "Create Secret Key" cicho
+nie działa (SPA catch-all `/{path:path}` zwraca HTML na GET i 405 na POST).
+Implementacja: `app/platform_api.py` (router) + wspólny stan `app/store.py`.
+Reguła: surowy sekret (`sk-live-*`/`sk-test-*`) wraca TYLKO z POST; lista i
+PATCH zwracają wyłącznie `keyHint`. Bramka `canUseApi` (`_d()` w bundlu)
+przepuszcza `type==="lifetime"`/`admin` — więc brak klucza to bug backendu,
+nie uprawnień. Testy: `app/test_platform_api.py`.
+
+## NVIDIA NIM (backend czatu) — od 2026-11-02
+Klucz w `app/.env` (`NVIDIA_API_KEY`; plik w .gitignore — NIE committować).
+PUŁAPKA: `nvidia_client.py` MUSI wołać `load_dotenv(<app>/.env)` u siebie na
+górze, bo `main.py` ładuje .env po imporcie klienta → inaczej `hasKey:false`.
+PUŁAPKA: stara tabela `MODEL_ALIASES` wskazywała na wycofane modele (HTTP 410
+Gone / 404). Konto ma dostęp tylko do podzbioru katalogu `/models` — wpis na
+liście NIE znaczy, że model działa; sprawdzać realnym `POST /chat/completions`.
+Działają: `nvidia/nemotron-3-ultra-550b-a55b` (flagowiec, tool_calls),
+`poolside/laguna-xs-2.1` (kod, najszybszy), `nemotron-3-nano-omni-30b-a3b-reasoning`,
+`nemotron-3.5-lightning-30b-a3b`, `nemotron-3.5-bolt-e4b`,
+`minimaxai/minimax-m3.1-flash`, `meta/muse-glimmer-30b`. NIE działają:
+wszystkie llama-3.x, qwen, deepseek-r1, mistral-nemotron, gemma, kimi, codestral.
+UI wysyła też `wormv-auto` (domyślny) + legacy `wormv45.1`, `wormv-4` — mapowane.
+REASONING: wyłącza się przez `chat_template_kwargs:{"thinking":false}` w body
+(bezpieczne dla wszystkich modeli). `app/chat_stream.py` dodaje to, gdy brak
+`isThinkingEnabled` (domyślnie OFF). Bundle frontendu wymuszał thinking dla
+v6/v6.2 — spatchowany na `isThinkingEnabled:!!vt` (przełącznik użytkownika).
+
+## Wygląd — zmierzone, nie zgadywane
+Pełna geometria: `.openhands/reference/wormgpt-chat-geometry.md`.
+Motyw = shadcn/ui ciemny: tło #0a0a0a, tekst #f2f2f2, wyciszony #8c8c8c,
+obramowanie #292929, akcent #ec1313, promień 6px (karty 12px, pigułki 9999px).
+
+Nieoczywiste fakty (łatwo pomylić się przy "odtwarzaniu z pamięci"):
+- Pasek komunikatu nad nagłówkiem jest BURSZTYNOWY `rgba(245,158,11,0.9)`,
+  `position: fixed`, i sam wygasa. Nie czerwony, nie zajmuje miejsca w układzie.
+- Navbar `fixed` od y=0; treść ma `padding-top: 60px`.
+- CTA ("Get Access") jest ZIELONY `#138643`.
+- Aktywne linki nawigacji nie są wyróżnione kolorem.
+- Karty hero: treść wyśrodkowana, 238x128, obramowanie 2px akcentu.
+- Przyciski "+" i wyślij to kwadraty 48x48 (promień 6px), nie okręgi.
+- Oryginał nie ma paska bocznego na desktopie.
+
+Silnik (`#tool-engine`) — od 2026-11-01 DROPDOWN, nie atrapa:
+- Klik otwiera `#engine-menu` w `.engine` (1:1 z komponentem `Nn` z oryginału):
+  300px szer., max-h 70vh, padding 4px, radius 12px, odstęp 8px od pigułki.
+- 5 grup z ikonami: 🔓 Uncensored (i-sparkles), 🛡️ Max Privacy (i-lock),
+  🧠 Reasoning (i-cpu), ⚡ Fast & Cheap (i-zap), 👁️ Vision (i-eye); ikony 12x12.
+- Katalog = 15 silników Venice z oryginału (`ENGINE_CATALOG`) + lokalne modele
+  Ollamy z badge "Lokalny". Silniki Venice klikalne tylko gdy `veniceUsable()`
+  (klucz + saldo > 0); inaczej `disabled` z badge "PRO".
+- PUŁAPKA: kompozytor jest na dole, więc menu MUSI otwierać się do góry
+  (`positionEngineMenu()` ustawia `data-side="top"`). Bez tego było obcięte.
+- PUŁAPKA: menu Silnika i "+" wykluczają się nawzajem.
+
+
+Persony — PRZYWRÓCONE (były usunięte, użytkownik kazał wrócić), od 2026-11-01 MODAL:
+- `#tool-persona` to `<button class="tab tab-outline">` z ikoną i-drama
+  ORAZ widoczną etykietą `#persona-label` (84x32, fs 12px). Gdy postać wybrana,
+  etykieta = NAZWA postaci (np. "Batman", 116x32) + mały "×" (`#persona-pill-x`),
+  klasa `is-on`, title "Postać: <nazwa>".
+  NIE robić wersji ikonowej — użytkownik zgłosił to jako błąd ("zniknęła nazwa").
+- Klik otwiera MODAL `#persona-modal` (1:1 z "Pick a Persona" z oryginału):
+  max-w 42rem=672px, max-h 80vh, padding 24px, wyszukiwarka + "Wyczyść",
+  siatka 2 kol., awatar 40px, ✓ przy wybranej, opis line-clamp-2.
+- Dane: `app/static/personas.json` = 50 OBIEKTÓW {slug,name,description,tags,...}
+  z edge function `venice-characters`. `tagline` i `avatarUrl` są tam ZAWSZE puste.
+- `state.settings.persona` trzyma SLUG (nie nazwę!). `migratePersonaKey()`
+  mapuje stare zapisy z nazwą. Do promptu idzie nazwa + opis (patrz daily log).
+
+Menu pod przyciskiem "+" (`#plus-menu` w `.attach`) — jak w oryginale:
+- 5 pozycji: Rozumowanie (przełącznik), Załącz plik, Generuj obraz,
+  Generuj wideo, Wprowadzanie głosowe.
+- Geometria: `bottom:calc(100% + 0.5rem)`, `left:0`, min-width 160px,
+  padding 8px, gap 4px, radius 12px. Zmierzone 232x194, odstęp 8px od przycisku.
+- Ikona plus obraca się o 45° przez klasę `.is-open` na `.attach`.
+- Rozumowanie: `state.settings.reasoning` (DEFAULTS false), etykieta
+  "Rozumowanie włączone", klasa `.is-on`, aria-checked; wstrzykuje do promptu
+  instrukcję analizy krok po kroku.
+- Głos: Web Speech API (pl-PL), wstawia tekst przez `dispatchEvent(new Event('input'))`.
+- Załącz plik otwiera `#file-input`; obraz/wideo pokazują komunikat, że Ollama
+  tego nie obsługuje (backend nie przyjmuje plików — `accept` to atrapa).
+- KLUCZOWE: referencje DOM menu MUSZĄ być na górze app.js (linie ~30-42),
+  bo `closePanels()` ich używa — inaczej ReferenceError (TDZ).
+
+Narzędzia w oryginale (do ewentualnej rozbudowy):
+- "Tools" to osobny przycisk z rozwijanym menu `w-80`: kategorie Reconnaissance,
+  Scanning, Enumeration, Analysis, Deep Web Research z 11 narzędziami.
+- U nas "Narzędzia" to na razie STATYCZNA pigułka `#tools-label` bez logiki.
+
+Świadome odstępstwa od referencji (NIE "poprawiać" przy dalszym dopasowaniu):
+
+## Metoda pomiaru oryginału (działa)
+Chromium headless + CDP. Flaga `--remote-allow-origins=*` jest OBOWIĄZKOWA,
+inaczej WebSocket odrzuca połączenie z błędem 403. Klient: `websocket-client` (pip).
+Mierzyć `getBoundingClientRect` + `getComputedStyle`; porównywać liczby własnej
+strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
+
+## Pułapki
+- `[hidden] { display: none !important; }` w CSS jest konieczne — własne
+  `display:flex` nadpisuje atrybut hidden i wszystkie panele pokazują się naraz.
+- Każdy `$("id")` w app.js musi mieć odpowiednik w index.html, inaczej
+  `null.addEventListener` przerywa start całego skryptu.
+- Nie używać `window.prompt` — blokuje stronę i jest nieprzetestowalny.
+- `/tmp` bywa czyszczony między sesjami; trwałe materiały trzymać w repo.
+
+## Testy
+`python3 -m pytest -q` → 37 testów (main.py, ollama_client.py, venice_client.py).

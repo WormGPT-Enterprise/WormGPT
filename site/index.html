@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('worm-theme');
+          if (t !== 'light' && t !== 'dark') t = 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+          document.documentElement.style.colorScheme = 'dark';
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classList.add('android-chrome');
+      })();
+    </script>
+    <script>
+      (function() {
+        window.addEventListener('error', function(e) {
+          var msg = String((e && (e.message || (e.error && e.error.message))) || '');
+          if (msg.indexOf('MetaMask') !== -1 || msg.indexOf('emit') !== -1 || msg.indexOf('addListener') !== -1 || msg.indexOf('ethereum') !== -1) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return true;
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e && e.reason;
+          var msg = String(typeof reason === 'string' ? reason : (reason && reason.message) || '');
+          if (msg.indexOf('MetaMask') !== -1 || msg.indexOf('emit') !== -1 || msg.indexOf('addListener') !== -1 || msg.indexOf('ethereum') !== -1 || msg.indexOf('Network error retrieving session') !== -1) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..700&family=Outfit:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <title>WORMGPT</title>
+    <style>
+      html, body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: var(--app-bg, #0a0a0a);
+        color: var(--app-text, #e4e4e7);
+      }
+      #root {
+        width: 100%;
+        min-height: 100%;
+      }
+      body {
+        background-image: var(--app-dot-grid);
+        background-size: 20px 20px;
+      }
+      /* Custom scrollbar — desktop only. On Android Chrome a styled
+         ::-webkit-scrollbar becomes a permanent overlay that covers
+         the header Get Started button. */
+      @media (hover: hover) and (pointer: fine) {
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: var(--app-scrollbar-track, #1a1a1a);
+        }
+        ::-webkit-scrollbar-thumb {
+          background-color: var(--app-scrollbar-thumb, #444);
+          border-radius: 4px;
+          border: 2px solid var(--app-scrollbar-track, #1a1a1a);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #FF0000;
+        }
+      }
+      @media (hover: none), (pointer: coarse) {
+        html {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        #root::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+          background: transparent !important;
+        }
+      }
+
+      /* Animated Border */
+      @keyframes animated-border-glow {
+        0% {
+          border-color: #ff0000;
+          box-shadow: 0 0 4px rgba(255, 0, 0, 0.4);
+        }
+        50% {
+          border-color: #d63333;
+          box-shadow: 0 0 12px rgba(255, 0, 0, 0.7);
+        }
+        100% {
+          border-color: #ff0000;
+          box-shadow: 0 0 4px rgba(255, 0, 0, 0.4);
+        }
+      }
+      
+      /* Message Fade-in Animation */
+      @keyframes fadeIn {
+        from { 
+          opacity: 0; 
+          transform: translateY(10px); 
+        }
+        to { 
+          opacity: 1; 
+          transform: translateY(0); 
+        }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+
+      /* Markdown Content Styles */
+      .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4 {
+          color: var(--md-heading, #f3f4f6);
+          margin-bottom: 0.5em;
+          margin-top: 1em;
+          font-weight: 600;
+          border-bottom: 1px solid var(--md-rule, #4b5563);
+          padding-bottom: 0.3em;
+      }
+      .markdown-content h1 { font-size: 1.5em; }
+      .markdown-content h2 { font-size: 1.25em; }
+      .markdown-content h3 { font-size: 1.1em; }
+
+      .markdown-content strong {
+          color: var(--md-strong, #ffffff);
+          font-weight: 600;
+      }
+      .markdown-content p {
+          margin-bottom: 1em;
+          line-height: 1.7; /* improve readability */
+      }
+      .markdown-content p:last-child {
+          margin-bottom: 0;
+      }
+      .markdown-content a {
+          color: #ff4d4d;
+          text-decoration: underline;
+          font-weight: 500;
+      }
+      .markdown-content a:hover {
+          color: #ff8080;
+      }
+      .markdown-content ul {
+          list-style-type: disc;
+          list-style-position: inside;
+          padding-left: 1em;
+          margin-top: 0.5em;
+          margin-bottom: 0.75em;
+      }
+      .markdown-content ol {
+          list-style-type: decimal;
+          list-style-position: inside;
+          padding-left: 1em;
+          margin-top: 0.5em;
+          margin-bottom: 0.75em;
+      }
+      .markdown-content li {
+          margin-bottom: 0.3em;
+      }
+      .markdown-content li::marker {
+          color: var(--md-marker, #9ca3af);
+      }
+
+      /* Full Screen Message Viewer Styles */
+      .fullscreen-markdown-wrapper .markdown-content {
+        font-size: 1.05rem; /* Slightly larger text */
+      }
+      .fullscreen-markdown-wrapper .markdown-content p,
+      .fullscreen-markdown-wrapper .markdown-content ul,
+      .fullscreen-markdown-wrapper .markdown-content ol,
+      .fullscreen-markdown-wrapper .markdown-content blockquote {
+          margin-bottom: 1.25em; /* More vertical space */
+          line-height: 1.7;
+          padding-left: 1rem;
+          padding-right: 1rem;
+      }
+      .fullscreen-markdown-wrapper .markdown-content h1, 
+      .fullscreen-markdown-wrapper .markdown-content h2, 
+      .fullscreen-markdown-wrapper .markdown-content h3 {
+          font-weight: 700; /* Bolder headings */
+          color: var(--md-heading, #ffffff);
+          padding-left: 1rem;
+          padding-right: 1rem;
+      }
+      .fullscreen-markdown-wrapper .markdown-content blockquote {
+          border-left: 4px solid #550000;
+          padding-left: 1em;
+          color: var(--md-muted, #d1d5db);
+      }
+      .fullscreen-markdown-wrapper .markdown-content a {
+          /* Handled by LinkBubble, no default styling needed here */
+          text-decoration: none;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-CeWFP5bj.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CeysEIn6.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer data-worm-turnstile="1"></script>
+  </body>
+</html>
