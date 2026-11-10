@@ -226,6 +226,16 @@ def test_mask_sse_removes_reasoning_in_delta():
     assert "reasoning_content" not in out and "NVIDIA" not in out
 
 
+def test_playground_run_request_is_not_a_silent_noop():
+    """Clicking Run Request with an empty prompt used to return silently, so
+    the button looked dead. It must surface a message instead."""
+    bundle = (Path(__file__).resolve().parent.parent
+              / "site" / "assets" / "index-CeWFP5bj.js").read_text(encoding="utf-8")
+    assert "if(!u.trim()){_" in bundle
+    assert "Enter a prompt, then click Run Request." in bundle
+    assert "if(!u.trim())return;if(!t){" not in bundle
+
+
 def test_ide_bundle_has_working_menu():
     """The IDE menubar must be the injected interactive component, not the
     upstream decorative label list that had no onClick handlers."""

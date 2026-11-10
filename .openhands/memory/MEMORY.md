@@ -257,6 +257,15 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
 - PUŁAPKA TESTOWA: `_auth_headers()` w test_platform_api.py musi czyścić
   `store.REQUEST_LOGS`, inaczej liczniki przeciekają między testami.
 
+## Playground "Run Request" (od 2026-11-02)
+- Handler to `Q` w komponencie `sU` (NIE `nU` — tamten to zakładka Overview).
+- Klucz: `w`/`X()` (walidator `TS` = /^wrm_(live|test)_[a-zA-Z0-9]+$/),
+  prompt: `u`, model: `l`, stream: `f` (domyślnie true).
+- PUSTY prompt => w oryginale ciche `return` (objaw: "klikam i nic").
+  Patch `.tools/patch_playground_feedback.py` dodaje komunikat.
+- Po zmianie bundle'a ZAWSZE zaktualizować `revision` w `site/sw.js`
+  (md5 pliku), inaczej service worker podaje stary plik.
+
 ## Testy
 `pytest -q` → 31 testów (`app/test_platform_api.py`).
 
