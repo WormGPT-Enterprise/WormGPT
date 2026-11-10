@@ -79,10 +79,42 @@ wymagania, które łatwo przeoczyć (wynikają wprost z kodu frontendu):
 
 Weryfikacja w przeglądarce: `.tools/verify_platform_pages.py`.
 
+## Integracje (`/integrations`) — VS Code + kod źródłowy
+
+Dwie funkcje z cennika („VSCode Integration", „Full Source Code Access") mają
+teraz realne endpointy w `app/integrations.py`:
+
+- `GET /api/integrations/vscode/config` — adresy bramki (OpenAI-compatible),
+  lista modeli i kroki instalacji. Otwarte, bez auth.
+- `GET /api/integrations/vscode/extension` — gotowy plik `.vsix`.
+- `GET /api/integrations/source/manifest` — lista plików paczki źródłowej.
+- `GET /api/integrations/source/download` — ZIP z kodem (tylko plan Lifetime,
+  inaczej 403). Sekrety, cache i `node_modules` są wykluczone.
+
+Strona `site/integrations.html` pokazuje obie sekcje; wejście z cennika działa
+przez delegację kliknięć w `site/index.html`. **Service worker** ma
+`/^\/integrations/` w denylistcie — bez tego cache'owany `index.html` zasłaniał
+tę stronę.
+
+### Rozszerzenie VS Code (`vscode-extension/`)
+
+Rejestruje dostawcę modeli czatu (`languageModelChatProviders`, vendor
+`wormgpt`), więc modele WormGPT pojawiają się w widoku Chat w VS Code.
+Kompilacja i pakowanie:
+
+```bash
+cd vscode-extension && npm install && npm run compile
+python3 ../.tools/build_vsix.py     # -> vscode-extension/dist/wormgpt-vscode.vsix
+```
+
+Komendy w VS Code: „WormGPT: Set API Key" oraz „WormGPT: Set Gateway URL".
+
 ## Struktura
 ```
-site/     frontend (wyczyszczony bundle + shell)
-app/      backend: main.py, chat_stream.py, nvidia_client.py, run.py
-.tools/   serve.py (statyk+proxy), capture.py, strip.py (usuwanie złego kodu)
-reference/ dowody 1:1 (zrzuty, zmierzone style)
+site/             frontend (wyczyszczony bundle + shell; integrations.html)
+app/              backend: main.py, chat_stream.py, nvidia_client.py,
+                  platform_api.py, integrations.py, run.py
+vscode-extension/ rozszerzenie VS Code (dostawca modeli czatu)
+.tools/           serve.py (statyk+proxy), capture.py, strip.py, build_vsix.py
+reference/        dowody 1:1 (zrzuty, zmierzone style)
 ```

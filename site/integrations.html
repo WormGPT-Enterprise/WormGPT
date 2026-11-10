@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WormGPT — Integrations</title>
+<style>
+  :root {
+    --bg: #0a0a0a; --text: #f2f2f2; --muted: #8c8c8c;
+    --border: #292929; --accent: #ec1313; --card: #111111;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 20px 80px; }
+  a { color: var(--accent); }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 28px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+  }
+  .card header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 9999px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .badge.ok { color: #138643; border-color: #138643; }
+  .badge.pro { color: #f59e0b; border-color: #f59e0b; }
+  code, pre {
+    font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+    font-size: 12.5px;
+  }
+  pre {
+    background: #000; border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; overflow-x: auto; margin: 12px 0;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  button, .btn {
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none; display: inline-block;
+  }
+  button.ghost, .btn.ghost {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+  }
+  button[disabled] { opacity: .45; cursor: not-allowed; }
+  ol { margin: 10px 0 0; padding-left: 20px; color: var(--muted); }
+  ol li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .muted { color: var(--muted); font-size: 13px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Integrations</h1>
+  <p class="lead">Connect WormGPT to your tools. Both features below are live, not marketing.</p>
+
+  <section class="card" id="vscode-card">
+    <header>
+      <h2>VS Code Integration</h2>
+      <span class="badge ok">Available</span>
+    </header>
+    <p class="muted">
+      The WormGPT extension registers a chat model provider, so the models
+      appear in the VS Code Chat view. Any OpenAI-compatible client works too.
+    </p>
+    <div id="vscode-body"><p class="muted">Loading…</p></div>
+  </section>
+
+  <section class="card" id="source-card">
+    <header>
+      <h2>Full Source Code Access</h2>
+      <span class="badge pro" id="source-badge">Lifetime</span>
+    </header>
+    <p class="muted">
+      Download the complete backend and frontend source as a ZIP. Available on
+      the Lifetime plan.
+    </p>
+    <div id="source-body"><p class="muted">Loading…</p></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const token = localStorage.getItem('sessionToken') || '';
+  const auth = token ? { Authorization: 'Bearer ' + token } : {};
+  const $ = (id) => document.getElementById(id);
+
+  function el(tag, attrs, text) {
+    const n = document.createElement(tag);
+    if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  async function loadVscode() {
+    const body = $('vscode-body');
+    try {
+      const r = await fetch('/api/integrations/vscode/config');
+      const c = await r.json();
+      body.innerHTML = '';
+      body.append(el('p', { class: 'muted' }, 'Gateway base URL'));
+      body.append(el('pre', null, c.chatCompletionsUrl));
+      body.append(el('p', { class: 'muted' }, 'Models: ' + c.models.join(', ')));
+      const steps = el('ol');
+      c.install.forEach((s) => steps.append(el('li', null, s)));
+      body.append(steps);
+      const row = el('div', { class: 'row' });
+      const dl = el('a', { class: 'btn', href: c.vsixUrl, download: '' }, 'Download wormgpt-vscode.vsix');
+      row.append(dl);
+      body.append(row);
+      body.append(el('p', { class: 'muted' },
+        'Need a key? Create one in the API Platform, then run "WormGPT: Set API Key" in VS Code.'));
+    } catch (e) {
+      body.innerHTML = '';
+      body.append(el('p', { class: 'muted' }, 'Could not load configuration.'));
+    }
+  }
+
+  async function loadSource() {
+    const body = $('source-body');
+    try {
+      const r = await fetch('/api/integrations/source/manifest', { headers: auth });
+      const m = await r.json();
+      body.innerHTML = '';
+      const kb = Math.round((m.totalBytes || 0) / 1024);
+      body.append(el('p', { class: 'muted' },
+        m.fileCount + ' files, about ' + kb + ' KB (secrets and caches excluded).'));
+      const row = el('div', { class: 'row' });
+      if (!token) {
+        row.append(el('a', { class: 'btn ghost', href: '/' }, 'Sign in to download'));
+        body.append(row);
+        body.append(el('p', { class: 'muted' }, 'Sign in with a Lifetime account to unlock the ZIP.'));
+        return;
+      }
+      if (m.authorized) {
+        $('source-badge').textContent = 'Unlocked';
+        $('source-badge').className = 'badge ok';
+        row.append(el('a', { class: 'btn', href: '/api/integrations/source/download', download: '' }, 'Download source ZIP'));
+      } else {
+        $('source-badge').textContent = 'Locked';
+        row.append(el('a', { class: 'btn ghost', href: '/' }, 'See Lifetime plan'));
+        body.append(el('p', { class: 'muted' }, 'Full Source Code Access requires the Lifetime plan.'));
+      }
+      body.append(row);
+    } catch (e) {
+      body.innerHTML = '';
+      body.append(el('p', { class: 'muted' }, 'Could not load source manifest.'));
+    }
+  }
+
+  loadVscode();
+  loadSource();
+})();
+</script>
+</body>
+</html>

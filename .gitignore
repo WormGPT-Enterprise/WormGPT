@@ -7,3 +7,7 @@ server.log
 site/assets/*.orig
 .tools/ollama/
 .venv/
+vscode-extension/node_modules/
+vscode-extension/out/
+vscode-extension/dist/
+*.vsix

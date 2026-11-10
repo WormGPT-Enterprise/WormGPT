@@ -1,0 +1,79 @@
+{
+  "name": "wormgpt-vscode",
+  "displayName": "WormGPT",
+  "description": "Use WormGPT models inside VS Code chat.",
+  "version": "1.0.0",
+  "publisher": "wormgpt",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "engines": {
+    "vscode": "^1.104.0"
+  },
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "keywords": [
+    "wormgpt",
+    "chat",
+    "ai",
+    "language-model"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "languageModelChatProviders": [
+      {
+        "vendor": "wormgpt",
+        "displayName": "WormGPT"
+      }
+    ],
+    "commands": [
+      {
+        "command": "wormgpt.setApiKey",
+        "title": "WormGPT: Set API Key"
+      },
+      {
+        "command": "wormgpt.setBaseUrl",
+        "title": "WormGPT: Set Gateway URL"
+      }
+    ],
+    "configuration": {
+      "title": "WormGPT",
+      "properties": {
+        "wormgpt.baseUrl": {
+          "type": "string",
+          "default": "https://api.wormgpt.live/v1",
+          "description": "Base URL of the WormGPT OpenAI-compatible gateway."
+        },
+        "wormgpt.models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "wormv6.2",
+            "wormv6.1",
+            "wormv6",
+            "wormv5.2",
+            "wormv5.1",
+            "wormv5.0",
+            "wormv4.1",
+            "wormv4.0"
+          ],
+          "description": "Model aliases offered to the VS Code chat model picker."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.104.0",
+    "typescript": "^5.9.2"
+  }
+}

@@ -150,8 +150,7 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
 - Klucze API: `platform_api._new_key_record` MUSI dawać `wrm_(live|test)_<hex>`
   (frontend waliduje `/^wrm_(live|test)_[a-zA-Z0-9]+$/`, więc `token_hex`, NIE
   `token_urlsafe`). `_mask` zachowuje pełny prefiks `wrm_*_`.
-- Env: `NVIDIA_API_KEY` w `app/.env` (gitignored). Klucz użytkownika:
-  `nvapi-x336...` (patrz .env).
+- Env: `NVIDIA_API_KEY` w `app/.env` (gitignored; NIE commitować wartości).
 
 ## Środowisko / uruchamianie
 - Sandbox RESETUJE się między turami: ginie proces i `/tmp`. Zamiast

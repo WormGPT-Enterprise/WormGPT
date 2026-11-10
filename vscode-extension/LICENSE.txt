@@ -1,0 +1,5 @@
+WormGPT VS Code Extension
+Copyright (c) WormGPT
+
+Permission is hereby granted to use this extension together with a valid
+WormGPT API key obtained from the WormGPT API Platform.

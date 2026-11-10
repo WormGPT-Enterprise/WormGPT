@@ -223,5 +223,28 @@
   <body>
     <div id="root"></div>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer data-worm-turnstile="1"></script>
+    <script>
+      // The pricing cards advertise "VSCode Integration" and "Full Source Code
+      // Access". Both now resolve to real downloads on the integrations page,
+      // so route clicks on those labels there.
+      (function () {
+        var LABELS = ['VSCode Integration', 'Full Source Code Access'];
+        document.addEventListener('click', function (e) {
+          var n = e.target;
+          for (var i = 0; i < 5 && n; i++) {
+            var t = (n.textContent || '').trim();
+            for (var j = 0; j < LABELS.length; j++) {
+              var L = LABELS[j];
+              if (t === L || (t.indexOf(L) === 0 && t.length < L.length + 60)) {
+                e.preventDefault();
+                window.location.href = '/integrations';
+                return;
+              }
+            }
+            n = n.parentElement;
+          }
+        }, true);
+      })();
+    </script>
   </body>
 </html>

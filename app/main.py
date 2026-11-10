@@ -17,6 +17,7 @@ import nvidia_client as nv
 import platform_api
 import completions
 import community_api
+import integrations
 import runner
 from chat_stream import stream_chat
 from store import SESSIONS, user_for as _user_for
@@ -28,6 +29,7 @@ SITE = BASE.parent / "site"
 app = FastAPI(title="WormGPT (clean rebuild)")
 app.include_router(platform_api.router)
 app.include_router(community_api.router)
+app.include_router(integrations.router)
 # OpenAI-compatible endpoint used by the Models playground; the UI tries
 # /api/v1/... first and falls back to /v1/...
 app.include_router(completions.router)
@@ -159,6 +161,11 @@ async def chats_wipe(authorization: str = Header(default="")):
 
 
 from fastapi.responses import FileResponse
+
+
+@app.get("/integrations")
+async def integrations_page():
+    return FileResponse(str(SITE / "integrations.html"))
 
 
 @app.get("/{path:path}")
