@@ -179,8 +179,30 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
   (provider="WormGPT", bez `upstream`). Frontend ma własny katalog (bundle nie
   woła /api/models).
 
+## Worm IDE — menu (FILES/EDIT/.../HELP) — od 2026-11-02
+- Frontend to JEDEN zminifikowany plik `site/assets/index-CeWFP5bj.js` (Vite).
+  Aliasy: `a` = react/jsx-runtime (`a.jsx`, `a.jsxs`, `a.Fragment`), `v` = React.
+- Pasek menu w nagłówku IDE (`["File","Edit","Selection","View","Run",
+  "Terminal","Help"]`) był DEKORACYJNY — przyciski bez `onClick`, więc martwe.
+- Naprawa: `.tools/patch_ide_menu.py` (idempotentny) wstrzykuje komponent
+  `Zq` (dropdowny + obsługa Escape/kliknięcia poza) i podmienia listę etykiet
+  na `a.jsx(Zq,{...})`, podpinając WŁASNE handlery IDE: New File/Folder
+  (`O("file"/"folder")`), Save (`localStorage worm-ide-workspace-v3`),
+  Download (`re`), ZIP (`ke`), Run (`Me`), przełączniki (`x`/`S`/`A`/`_`),
+  terminal (`z("terminal")`), log (`K`).
+- PUŁAPKA: identyfikatory `NM` i `SM` SĄ już zajęte w bundle -> `SyntaxError:
+  Identifier 'NM' has already been declared` (bundle to jeden scope). Przed
+  wstrzyknięciem sprawdzić `\bNAZWA\b`; `Zq` jest wolne.
+- PUŁAPKA: service worker (`site/sw.js`) precache'uje bundle z `revision:null`,
+  więc klient trzyma STARY plik. Po zmianie bundle zaktualizować rewizję na
+  md5 (`test_service_worker_revision_matches_bundle` tego pilnuje).
+- Weryfikacja: `.tools/verify_ide_menu.py` (headless Chromium + CDP). Logowanie
+  przez formularz przez CDP NIE działa (Turnstile/stan) — pobrać token z
+  `POST /api/login` i wstrzyknąć `localStorage.setItem('sessionToken',...)`,
+  potem wejść na `/chat`. Test klika 7 menu i tworzy plik (PASS).
+
 ## Testy
-`pytest -q` → 15 testów (`app/test_platform_api.py`).
+`pytest -q` → 17 testów (`app/test_platform_api.py`).
 
 ## Git
 Remote: WormGPT-Enterprise/WormGPT. Gałąź `main`; lokalne commity NIE są

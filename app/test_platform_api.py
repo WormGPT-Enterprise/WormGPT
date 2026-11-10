@@ -165,3 +165,22 @@ def test_mask_sse_removes_reasoning_in_delta():
     line = 'data: {"choices":[{"delta":{"content":"a","reasoning_content":"NVIDIA"}}]}'
     out = completions._mask_sse(line, "wormv6", "mistralai/mistral-large-4-1t-a52b")
     assert "reasoning_content" not in out and "NVIDIA" not in out
+
+
+def test_ide_bundle_has_working_menu():
+    """The IDE menubar must be the injected interactive component, not the
+    upstream decorative label list that had no onClick handlers."""
+    bundle = (Path(__file__).resolve().parent.parent
+              / "site" / "assets" / "index-CeWFP5bj.js").read_text(encoding="utf-8")
+    assert "Zq=(P)=>{const [open,setOpen]" in bundle          # menu component
+    assert "a.jsx(Zq,{" in bundle                            # wired into the header
+    assert '"File","Edit","Selection","View","Run","Terminal","Help"].map' not in bundle
+
+
+def test_service_worker_revision_matches_bundle():
+    """Precache must carry a content revision, else clients keep a stale bundle."""
+    import hashlib
+    site = Path(__file__).resolve().parent.parent / "site"
+    digest = hashlib.md5((site / "assets" / "index-CeWFP5bj.js").read_bytes()).hexdigest()
+    sw = (site / "sw.js").read_text(encoding="utf-8")
+    assert f'index-CeWFP5bj.js",revision:"{digest}"' in sw
