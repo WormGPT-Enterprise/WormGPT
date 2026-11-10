@@ -141,6 +141,25 @@ def main():
           return !!f && f.getAttribute('srcdoc').includes('background: rgb(1, 2, 3)')})()""")
         print("css preview iframe:", checks["css_preview"])
 
+        # 5. Java and Lua also run through the same Run button
+        print("new java:", create_file(cdp, "Main.java"))
+        time.sleep(1.0)
+        cdp.eval(RUN_CLICK); time.sleep(6)
+        textj = cdp.eval(TERMINAL_TEXT) or ""
+        checks["java_ran"] = "OK java" in textj.split("$ Running")[-1]
+        print("terminal (java):", repr(textj.split("$ Running")[-1][-160:]))
+
+        print("new lua:", create_file(cdp, "calc.lua"))
+        time.sleep(1.0)
+        cdp.eval("""(()=>{const t=document.querySelector('textarea[wrap="off"]');
+          const d=Object.getOwnPropertyDescriptor(t.constructor.prototype,'value').set;
+          d.call(t,'print(6*7)'); t.dispatchEvent(new Event('input',{bubbles:true}))})()""")
+        time.sleep(0.4)
+        cdp.eval(RUN_CLICK); time.sleep(4)
+        textl = cdp.eval(TERMINAL_TEXT) or ""
+        checks["lua_ran"] = "42" in textl.split("$ Running")[-1] and "OK lua" in textl
+        print("terminal (lua):", repr(textl.split("$ Running")[-1][-160:]))
+
         print("RESULT:", "PASS" if all(checks.values()) else "FAIL", checks)
         return 0 if all(checks.values()) else 1
     finally:

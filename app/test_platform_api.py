@@ -244,6 +244,20 @@ def test_runner_capabilities_lists_installed_toolchains():
     assert caps["python"] and caps["cpp"] and caps["javascript"]
 
 
+def test_runner_runs_java_lua_and_csharp():
+    java = _run({"files": [{"name": "Main.java", "content":
+                            "public class Main { public static void main(String[] a){"
+                            " System.out.println(6*7); } }"}]}).json()
+    assert java["ok"] and java["language"] == "java" and java["stdout"].strip() == "42"
+
+    lua = _run({"files": [{"name": "m.lua", "content": "print(6*7)"}]}).json()
+    assert lua["ok"] and lua["language"] == "lua" and lua["stdout"].strip() == "42"
+
+    cs = _run({"files": [{"name": "m.cs", "content":
+                          "class Program { static void Main(){ System.Console.WriteLine(6*7); } }"}]}).json()
+    assert cs["ok"] and cs["language"] == "csharp" and cs["stdout"].strip() == "42"
+
+
 def test_runner_times_out_instead_of_hanging():
     r = _run({"files": [{"name": "loop.py", "content": "while True: pass"}]}).json()
     assert r["ok"] is False and "timed out" in r["error"]

@@ -229,7 +229,13 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
   `.tools/patch_ide_runner.py` (fetch /api/run + podgląd CSS w iframe).
   PUŁAPKA: marker idempotencji nie może być stringiem z tabel Prism
   (`scss:"scss"`, `cc:"cpp"` występują też w Prism!) — użyć `txt:"text"}[t||""]`.
-- Zainstalowane runtime'y (apt): php-cli, ruby, golang-go, rustc.
+- Zainstalowane runtime'y (apt): php-cli, ruby, golang-go, rustc,
+  default-jdk-headless, lua5.4, mono-devel. **Warstwy apt NIE przeżywają
+  restartu kontenera** — po restarcie `.tools/install_runtimes.sh`.
+- PUŁAPKA: `shutil.which("./main.bin")` zwraca None (ścieżka relatywna!) —
+  dla zbudowanych binarek użyć `_have_command` sprawdzającego plik w workdir.
+- Swift: pakiet `swiftlang` to ~2 GB i wywalił restart środowiska; NIE
+  instalować bez wyraźnej potrzeby.
 - Panele boczne: `app/community_api.py` obsługuje /api/my-files, /api/get-file-url,
   /api/partners, /api/advertisement, /api/mystery-box (wcześniej SPA fallback
   zwracał HTML → panel czerwony).

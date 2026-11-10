@@ -9,7 +9,6 @@ the host (python3, node, gcc, g++, php, bash).
 Only the languages below are ever invoked, always via an argument vector (no
 shell), inside a temporary directory that is removed afterwards.
 """
-import os
 import shutil
 import subprocess
 import tempfile
@@ -29,19 +28,25 @@ INTERPRETERS = {
     "bash": (["bash", "{f}"], "main.sh"),
     "ruby": (["ruby", "{f}"], "main.rb"),
     "go": (["go", "run", "{f}"], "main.go"),
+    "lua": (["lua5.4", "{f}"], "main.lua"),
 }
 
-# language -> compiler argv; the binary is run afterwards.
+# language -> (compile argv, run argv); `{f}` is the entry file path.
 COMPILERS = {
-    "c": (["gcc", "{f}", "-O0", "-o", "main.bin"], "main.c"),
-    "cpp": (["g++", "-std=c++17", "{f}", "-O0", "-o", "main.bin"], "main.cpp"),
-    "rust": (["rustc", "--edition", "2021", "{f}", "-o", "main.bin"], "main.rs"),
+    "c": (["gcc", "{f}", "-O0", "-o", "main.bin"], ["./main.bin"]),
+    "cpp": (["g++", "-std=c++17", "{f}", "-O0", "-o", "main.bin"], ["./main.bin"]),
+    "rust": (["rustc", "--edition", "2021", "{f}", "-o", "main.bin"], ["./main.bin"]),
+    # javac names the output after the public class, so the run command is fixed
+    # to the conventional `Main` class the starter template defines.
+    "java": (["javac", "{f}"], ["java", "-cp", ".", "Main"]),
+    "csharp": (["mcs", "{f}", "-out:main.exe"], ["mono", "main.exe"]),
 }
 
 LANGUAGE_BY_EXT = {
     "py": "python", "js": "javascript", "mjs": "javascript", "cjs": "javascript",
     "jsx": "jsx", "ts": "typescript", "tsx": "tsx", "php": "php",
     "sh": "bash", "bash": "bash", "rb": "ruby", "go": "go", "rs": "rust",
+    "lua": "lua", "java": "java", "cs": "csharp",
     "c": "c", "cpp": "cpp", "cc": "cpp", "cxx": "cpp", "h": "cpp", "hpp": "cpp",
 }
 
@@ -63,7 +68,17 @@ def supported() -> dict:
         "ruby": bool(shutil.which("ruby")),
         "go": bool(shutil.which("go")),
         "rust": bool(shutil.which("rustc")),
+        "lua": bool(shutil.which("lua5.4")),
+        "java": bool(shutil.which("javac") and shutil.which("java")),
+        "csharp": bool(shutil.which("mcs") and shutil.which("mono")),
     }
+
+
+def _have_command(token: str, workdir: str) -> bool:
+    """True when `token` resolves — either a system binary or a just-built file."""
+    if token.startswith("./"):
+        return (Path(workdir) / token[2:]).exists()
+    return bool(shutil.which(token))
 
 
 def _safe_relpath(name: str) -> str | None:
@@ -105,8 +120,9 @@ def run_files(files: list[dict], entry: str | None = None) -> dict:
     language = language_for(chosen)
     if not language:
         return {"ok": False, "entry": chosen,
-                "error": f"Don't know how to run '{chosen}'. "
-                         "Supported: Python, JavaScript, TypeScript, PHP, Bash, C, C++."}
+                "error": f"Don't know how to run '{chosen}'. Supported: Python, "
+                         "JavaScript, TypeScript, PHP, Bash, Ruby, Go, Rust, Lua, "
+                         "Java, C#, C, C++."}
 
     workdir = tempfile.mkdtemp(prefix="wormrun-")
     try:
@@ -116,11 +132,11 @@ def run_files(files: list[dict], entry: str | None = None) -> dict:
             target.write_text(content, encoding="utf-8")
 
         if language in COMPILERS:
-            argv, _ = COMPILERS[language]
-            if not shutil.which(argv[0]):
+            compile_argv, run_argv = COMPILERS[language]
+            if not shutil.which(compile_argv[0]):
                 return {"ok": False, "language": language, "entry": chosen,
-                        "error": f"'{argv[0]}' is not installed on this server."}
-            compile_argv = [a.replace("{f}", chosen) for a in argv]
+                        "error": f"'{compile_argv[0]}' is not installed on this server."}
+            compile_argv = [a.replace("{f}", chosen) for a in compile_argv]
             comp = subprocess.run(compile_argv, cwd=workdir, capture_output=True,
                                   text=True, timeout=TIMEOUT_SECONDS)
             if comp.returncode != 0:
@@ -128,7 +144,10 @@ def run_files(files: list[dict], entry: str | None = None) -> dict:
                 return {"ok": False, "language": language, "entry": chosen,
                         "stdout": "", "stderr": out, "exitCode": comp.returncode,
                         "truncated": cut, "phase": "compile"}
-            cmd = [os.path.join(workdir, "main.bin")]
+            if not _have_command(run_argv[0], workdir):
+                return {"ok": False, "language": language, "entry": chosen,
+                        "error": f"'{run_argv[0]}' is not installed on this server."}
+            cmd = [a.replace("{f}", chosen) for a in run_argv]
         else:
             argv, _ = INTERPRETERS[language]
             if not shutil.which(argv[0]):
