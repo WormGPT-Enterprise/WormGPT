@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fastapi.testclient import TestClient  # noqa: E402
 
 import main  # noqa: E402
+import completions  # noqa: E402
 import nvidia_client as nv  # noqa: E402
 import store  # noqa: E402
 
@@ -133,3 +134,34 @@ def test_completions_rejects_unknown_key():
                     headers={"Authorization": "Bearer wrm_live_deadbeef"},
                     json={"model": "wormv6.2", "messages": []})
     assert r.status_code == 401
+
+
+def test_catalog_aliases_map_to_distinct_models():
+    # Each catalog entry must be a different engine; descriptions promise
+    # different behaviour, so sharing one base model would be a bug.
+    aliases = ["wormv6.2", "wormv6", "wormv6.1", "wormv5.2",
+               "wormv5.1", "wormv5.0", "wormv4.1", "wormv4.0"]
+    real = [nv.resolve_model(a) for a in aliases]
+    assert len(set(real)) == len(real)
+    assert "nvidia/nemotron-3-ultra-550b-a55b" not in real[1:]  # no reuse of flagship
+
+
+def test_mapping_matches_descriptions():
+    assert nv.resolve_model("wormv6.1") == "poolside/laguna-xs-2.1"      # coding
+    assert nv.resolve_model("wormv6.2") == "nvidia/nemotron-3-ultra-550b-a55b"
+    assert nv.resolve_model("wormv4.1") == "google/gemma-4-31b-it"       # high-speed logic
+    assert nv.resolve_model("wormv4.0") == "nvidia/nemotron-3.5-bolt-e4b"  # lite/fast
+
+
+def test_sanitize_drops_reasoning_content():
+    data = {"model": "x", "choices": [
+        {"message": {"content": "hi", "reasoning_content": "I am Nemotron"}}]}
+    out = completions._sanitize(data)
+    assert "reasoning_content" not in out["choices"][0]["message"]
+    assert out["choices"][0]["message"]["content"] == "hi"
+
+
+def test_mask_sse_removes_reasoning_in_delta():
+    line = 'data: {"choices":[{"delta":{"content":"a","reasoning_content":"NVIDIA"}}]}'
+    out = completions._mask_sse(line, "wormv6", "mistralai/mistral-large-4-1t-a52b")
+    assert "reasoning_content" not in out and "NVIDIA" not in out

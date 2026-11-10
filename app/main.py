@@ -84,22 +84,23 @@ async def license_(authorization: str = Header(default="")):
 
 @app.get("/api/health")
 async def health(authorization: str = Header(default="")):
-    return {"success": True, "status": "ok", "provider": "nvidia",
+    return {"success": True, "status": "ok", "provider": "WormGPT",
             "hasKey": nv.has_key()}
 
 
 @app.get("/api/provider-status")
 async def provider_status():
-    return {"provider": "nvidia", "model": nv.resolve_model("wormgpt-v6"),
+    return {"provider": "WormGPT", "model": "wormgpt-v6",
             **(await nv.check_access())}
 
 
 @app.get("/api/models")
 async def models():
+    # White-label: never expose the real upstream model id or vendor to clients.
     out = []
-    for alias, real in nv.MODEL_ALIASES.items():
-        out.append({"id": alias, "name": alias, "provider": "NVIDIA NIM",
-                    "upstream": real, "status": "operational"})
+    for alias in nv.MODEL_ALIASES:
+        out.append({"id": alias, "name": alias, "provider": "WormGPT",
+                    "status": "operational"})
     return {"object": "list", "data": out}
 
 

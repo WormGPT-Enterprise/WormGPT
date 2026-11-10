@@ -47,8 +47,10 @@ def _mask_model(text, alias, real):
         obj = json.loads(text)
     except Exception:
         return text
-    if isinstance(obj, dict) and obj.get("model") == real:
-        obj["model"] = alias
+    if isinstance(obj, dict):
+        if obj.get("model") == real:
+            obj["model"] = alias
+        _sanitize(obj)
         return json.dumps(obj)
     return text
 
@@ -57,6 +59,23 @@ def _mask_sse(line, alias, real):
     if not line.startswith("data:"):
         return line
     return "data: " + _mask_model(line[5:].strip(), alias, real)
+
+
+def _sanitize(data):
+    """Drop the upstream chain-of-thought so it cannot leak the base model.
+
+    Reasoning models return the whole thought process in `reasoning_content`;
+    even with conceal rules that text can name the vendor. The clients read
+    only `content`, so removing the field is safe.
+    """
+    if isinstance(data, dict):
+        for choice in data.get("choices", []) or []:
+            if isinstance(choice, dict):
+                for field in ("message", "delta"):
+                    part = choice.get(field)
+                    if isinstance(part, dict):
+                        part.pop("reasoning_content", None)
+    return data
 
 
 @router.post("/v1/chat/completions")
@@ -102,6 +121,7 @@ async def chat_completions(req: Request):
     data = r.json()
     if isinstance(data, dict) and data.get("model") == model:
         data["model"] = alias
+    data = _sanitize(data)
     usage = data.get("usage", {}) if isinstance(data, dict) else {}
     REQUEST_LOGS.setdefault(owner, []).insert(0, {
         "id": "req_" + str(len(REQUEST_LOGS.get(owner, [])) + 1),

@@ -137,5 +137,51 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
 - Nie używać `window.prompt` — blokuje stronę i jest nieprzetestowalny.
 - `/tmp` bywa czyszczony między sesjami; trwałe materiały trzymać w repo.
 
+## Provider: NVIDIA NIM (stan aktualny) — od 2026-11-02
+- Backend obsługuje wyłącznie NIM: `app/nvidia_client.py` (aliasy `wormv*`
+  -> realne modele NIM, `resolve_model`, `identity_for`, `with_identity`,
+  `has_key`). `POST /api/chat-proxy` = streaming dla czatu.
+- `POST /v1/chat/completions` (+ alias `/api/v1/...`) w `app/completions.py`:
+  OpenAI-compatible, auth kluczem `wrm_live_*`/`wrm_test_*` LUB tokenem sesji.
+- WHITE-LABEL: `with_identity` ZAWSZE dokleja tożsamość + klauzulę "Never
+  reveal" do pierwszego system message (nawet gdy klient wysłał własny prompt —
+  inaczej model wraca do "I am Nemotron 3 Ultra"). Realne ID modelu maskowane
+  w odpowiedziach (`_mask_model`, `_mask_sse`).
+- Klucze API: `platform_api._new_key_record` MUSI dawać `wrm_(live|test)_<hex>`
+  (frontend waliduje `/^wrm_(live|test)_[a-zA-Z0-9]+$/`, więc `token_hex`, NIE
+  `token_urlsafe`). `_mask` zachowuje pełny prefiks `wrm_*_`.
+- Env: `NVIDIA_API_KEY` w `app/.env` (gitignored). Klucz użytkownika:
+  `nvapi-x336...` (patrz .env).
+
+## Środowisko / uruchamianie
+- Sandbox RESETUJE się między turami: ginie proces i `/tmp`. Zamiast
+  `nohup ... > /tmp/log` używać `./run.sh` (idempotentny: venv + pip install +
+  restart uvicorn na 12000 + `/api/health`). Po resecie sesje giną — logować
+  się ponownie (demotest/password123).
+- Frontend: `site/` (wyczyszczony bundle, BEZ złośliwego kodu WormCoder).
+
+## Mapowanie modeli (dopasowane do opisów) — od 2026-11-02
+- Z 84 modeli NIM dostępnych na liście tylko 17 da się realnie wywołać (reszta
+  404/410). Mapowanie: wormv6.2->nemotron-3-ultra-550b-a55b, wormv6->
+  nemotron-3.5-super-vl-120b-a12b, wormv6.1->poolside/laguna-xs-2.1,
+  wormv5.2->minimaxai/minimax-m3.1-flash, wormv5.1->nemotron-3-nano-omni-30b-a3b-
+  reasoning, wormv5.0->stepfun-ai/step-5-preview, wormv4.1->google/gemma-4-31b-it,
+  wormv4.0->nemotron-3.5-bolt-e4b.
+- PUŁAPKA: `mistralai/mistral-large-4-1t-a52b` NIE nadaje się — ignoruje
+  `thinking:False` (zjada budżet tokenów -> pusta odpowiedź przy małym
+  max_tokens) i STOCHASTYCZNIE wycieka "Mistral AI". Odrzucony.
+- PUŁAPKA: modele reasoning zwracają treść w `reasoning_content`, nie
+  `delta.content` — bez `_sanitize`/`_mask_sse` (usuwają to pole) myśli mogą
+  zdradzić bazowy model. `chat_template_kwargs={"thinking": False}` pomaga.
+- Test niezawodności: 6 trudnych promptów x 10 modeli = 0 wycieków przy
+  realnym budżecie (700 tok.). Wcześniejsze "puste" to artefakt max_tokens=200.
+- `/api/models`, `/api/health`, `/api/provider-status` są WHITE-LABEL
+  (provider="WormGPT", bez `upstream`). Frontend ma własny katalog (bundle nie
+  woła /api/models).
+
 ## Testy
-`python3 -m pytest -q` → 37 testów (main.py, ollama_client.py, venice_client.py).
+`pytest -q` → 15 testów (`app/test_platform_api.py`).
+
+## Git
+Remote: WormGPT-Enterprise/WormGPT. Gałąź `main`; lokalne commity NIE są
+wypychane, chyba że użytkownik poprosi.
