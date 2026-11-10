@@ -216,8 +216,27 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
 - Weryfikacja: `.tools/verify_folder_delete.py` (CDP) — 3 scenariusze: kosz
   z potwierdzeniem, File→Delete Folder, guard na Agent Project. PASS.
 
+## Runner kodu w IDE (Run) — od sesji 5
+- Oryginał: `Me` przy "Run" tylko dla HTML pokazywał preview, resztę kwitował
+  komunikatem "other runtimes require a sandbox service". `PA` (języki) znał 20
+  rozszerzeń, brak podświetlania składni w IDE (Prism NIE jest używany w IDE).
+- Backend: `app/runner.py` + `POST /api/run` (+ `GET /api/run/capabilities`).
+  Temp dir, argv bez shella, 20 s timeout, wyjście ≤60 kB, odrzuca `..`.
+- Obsługiwane: python, javascript/mjs/cjs, jsx, ts, tsx, php, bash, ruby, go,
+  rust, c, cpp (+cc/cxx/h/hpp). Rust MUSI iść jako kompilacja (rustc bez -O0,
+  z `--edition 2021`) — wcześniej tylko się kompilował i nic nie wypisywał.
+- Frontend: `.tools/patch_ide_languages.py` (rozszerzenia + startery) oraz
+  `.tools/patch_ide_runner.py` (fetch /api/run + podgląd CSS w iframe).
+  PUŁAPKA: marker idempotencji nie może być stringiem z tabel Prism
+  (`scss:"scss"`, `cc:"cpp"` występują też w Prism!) — użyć `txt:"text"}[t||""]`.
+- Zainstalowane runtime'y (apt): php-cli, ruby, golang-go, rustc.
+- Panele boczne: `app/community_api.py` obsługuje /api/my-files, /api/get-file-url,
+  /api/partners, /api/advertisement, /api/mystery-box (wcześniej SPA fallback
+  zwracał HTML → panel czerwony).
+- Weryfikacja: `.tools/verify_ide_languages.py` (CDP, 4 sprawdzenia) → PASS.
+
 ## Testy
-`pytest -q` → 18 testów (`app/test_platform_api.py`).
+`pytest -q` → 31 testów (`app/test_platform_api.py`).
 
 ## Git
 Remote: WormGPT-Enterprise/WormGPT. Gałąź `main`; lokalne commity NIE są

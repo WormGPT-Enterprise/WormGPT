@@ -3,6 +3,8 @@
 SESSIONS: dict[str, dict] = {}          # token -> {"user":..., "license":...}
 API_KEYS: dict[str, list[dict]] = {}    # user id -> list of key records
 REQUEST_LOGS: dict[str, list[dict]] = {}  # user id -> list of request log records
+UPLOADS: dict[str, list[dict]] = {}       # user id -> uploaded file records
+ADS: list[dict] = []                       # submitted advertisements
 
 
 def user_for(token: str | None):

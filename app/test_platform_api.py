@@ -194,3 +194,112 @@ def test_service_worker_revision_matches_bundle():
     digest = hashlib.md5((site / "assets" / "index-CeWFP5bj.js").read_bytes()).hexdigest()
     sw = (site / "sw.js").read_text(encoding="utf-8")
     assert f'index-CeWFP5bj.js",revision:"{digest}"' in sw
+
+
+# --- multi-language runner -------------------------------------------------
+
+import runner  # noqa: E402
+
+
+def _run(payload):
+    h = _auth_headers()
+    return client.post("/api/run", headers=h, json=payload)
+
+
+def test_runner_runs_python_and_reports_exit_code():
+    r = _run({"files": [{"name": "main.py", "content": "print(6*7)"}]}).json()
+    assert r["ok"] and r["language"] == "python"
+    assert r["stdout"].strip() == "42" and r["exitCode"] == 0
+
+    bad = _run({"files": [{"name": "main.py", "content": "raise SystemExit(3)"}]}).json()
+    assert bad["ok"] is False and bad["exitCode"] == 3
+
+
+def test_runner_compiles_cpp_and_c():
+    cpp = _run({"files": [{"name": "m.cpp", "content":
+                           '#include <iostream>\nint main(){std::cout<<"x";}'}]}).json()
+    assert cpp["ok"] and cpp["language"] == "cpp" and cpp["stdout"] == "x"
+
+    c = _run({"files": [{"name": "m.c", "content":
+                         '#include <stdio.h>\nint main(){printf("y");}'}]}).json()
+    assert c["ok"] and c["language"] == "c" and c["stdout"] == "y"
+
+
+def test_runner_surfaces_compile_errors():
+    r = _run({"files": [{"name": "bad.cpp", "content": "int main(){ this is not c++ }"}]}).json()
+    assert r["ok"] is False and r["phase"] == "compile" and r["stderr"]
+
+
+def test_runner_rejects_unknown_and_traversal():
+    assert "Don't know how to run" in _run(
+        {"files": [{"name": "notes.txt", "content": "hi"}], "entry": "notes.txt"}).json()["error"]
+    assert "No runnable file" in _run(
+        {"files": [{"name": "notes.txt", "content": "hi"}]}).json()["error"]
+    assert _run({"files": [{"name": "../evil.py", "content": "print(1)"}]}).json()["ok"] is False
+    assert client.post("/api/run", json={"files": [{"name": "a.py", "content": "1"}]}).status_code == 401
+
+
+def test_runner_capabilities_lists_installed_toolchains():
+    caps = client.get("/api/run/capabilities").json()["runtimes"]
+    assert caps["python"] and caps["cpp"] and caps["javascript"]
+
+
+def test_runner_times_out_instead_of_hanging():
+    r = _run({"files": [{"name": "loop.py", "content": "while True: pass"}]}).json()
+    assert r["ok"] is False and "timed out" in r["error"]
+
+
+def test_ide_bundle_runs_code_and_previews_css():
+    bundle = (Path(__file__).resolve().parent.parent
+              / "site" / "assets" / "index-CeWFP5bj.js").read_text(encoding="utf-8")
+    assert 'fetch("/api/run"' in bundle
+    assert "ZqPreview=" in bundle
+    assert '["html","css"].includes' in bundle
+
+
+def test_ide_bundle_knows_extra_languages():
+    bundle = (Path(__file__).resolve().parent.parent
+              / "site" / "assets" / "index-CeWFP5bj.js").read_text(encoding="utf-8")
+    for ext in ('cpp:"cpp"', 'rs:"rust"', 'go:"go"', 'rb:"ruby"', 'cxx:"cpp"', 'hpp:"cpp"'):
+        assert ext in bundle
+    assert 't==="cpp"?`#include <iostream>' in bundle
+
+
+# --- community endpoints (sidebar panels) ----------------------------------
+
+def test_community_endpoints_require_auth():
+    store.SESSIONS.clear()
+    for path in ("/api/my-files", "/api/partners", "/api/advertisement", "/api/mystery-box"):
+        assert client.get(path).status_code == 401
+
+
+def test_community_endpoints_return_json_not_spa_html():
+    h = _auth_headers()
+    for path, key in (("/api/my-files", "files"), ("/api/partners", "partners"),
+                      ("/api/advertisement", "ads")):
+        r = client.get(path, headers=h)
+        assert r.status_code == 200 and r.json()[key] == []
+        assert "text/html" not in r.headers.get("content-type", "")
+
+
+def test_mystery_box_reports_no_ads_without_erroring():
+    h = _auth_headers()
+    body = client.get("/api/mystery-box", headers=h).json()
+    assert body["canClaim"] is True and body["hasAd"] is False
+    assert "message" in body
+
+
+def test_advertisement_submit_round_trip():
+    h = _auth_headers()
+    r = client.post("/api/advertisement", headers=h,
+                    json={"productName": "Acme", "productDetails": "d", "plan": "1 Week"})
+    assert r.status_code == 200 and r.json()["ad"]["status"] == "pending"
+    assert client.get("/api/advertisement", headers=h).json()["ads"][0]["productName"] == "Acme"
+    assert client.post("/api/advertisement", headers=h, json={}).status_code == 400
+
+
+def test_my_files_delete_and_missing_file_url():
+    h = _auth_headers()
+    assert client.get("/api/get-file-url?fileKey=nope", headers=h).status_code == 404
+    assert client.request("DELETE", "/api/my-files", headers=h, json={"id": "x"}).json()["success"]
+
