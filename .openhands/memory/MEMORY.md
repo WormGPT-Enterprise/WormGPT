@@ -271,3 +271,13 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
 ## Git
 Remote: WormGPT-Enterprise/WormGPT. Gałąź `main`; lokalne commity NIE są
 wypychane, chyba że użytkownik poprosi.
+
+## Integracje (od 2026-11-02)
+- „VSCode Integration" i „Full Source Code Access" z cennika mają realne
+  endpointy w `app/integrations.py` (`/api/integrations/...`), stronę
+  `/integrations` (`site/integrations.html`) i rozszerzenie VS Code
+  (`vscode-extension/`, pakowane przez `.tools/build_vsix.py`, bez vsce).
+- PUŁAPKA: `site/sw.js` ma `NavigationRoute` z denylistą. Każda nowa trasa
+  nie-SPA (np. `/integrations`) MUSI tam trafić, inaczej cache'owany
+  `index.html` ją zasłania. Po zmianie `index.html` zaktualizować jego
+  `revision` w precache (md5). Testy: `app/test_integrations.py`.
