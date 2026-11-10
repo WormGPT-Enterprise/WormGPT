@@ -58,6 +58,27 @@ PHP 8.4, Ruby 3.3, Go 1.24, Rust 1.85, Lua 5.4, OpenJDK 21, Mono C# 6.12.
 Limit: 20 s, wyjście ucinane do 60 kB. Warstwy `apt` nie przeżywają restartu
 kontenera — po restarcie uruchom `.tools/install_runtimes.sh`.
 
+### API Platform — logika
+
+`/api/platform/*` obsługuje klucze, dziennik żądań, usage i billing. Niejawne
+wymagania, które łatwo przeoczyć (wynikają wprost z kodu frontendu):
+
+- **Wiersz logu** musi mieć `statusCode`, `timestamp`, `durationMs`,
+  `promptTokens`, `completionTokens`, `totalTokens` i `keyName`. Inaczej
+  tabela „API Request Logs" renderuje `undefined` w każdej kolumnie.
+- **Streaming też jest logowany** — wpis powstaje w `finally` generatora SSE,
+  więc przerwanie strumienia nadal go zapisuje. Zużycie tokenów bierzemy z
+  ostatniej ramki z `usage`; gdy upstream go nie poda, szacujemy z długości
+  tekstu (prompt + odpowiedź), bo playground nie prosi o `stream_options`.
+- **`dailyUsage`** to jedna pozycja na każdy z `days` dni (domyślnie 14),
+  z polami `date`, `formattedDate`, `requests`, `promptTokens`,
+  `completionTokens`, `totalTokens`, `cost`, `errors`.
+- **`spendLimitUsd`** jest egzekwowany: przekroczenie daje HTTP 429.
+- Statystyki klucza (`totalRequests`, `lastUsedAt`, `totalSpentUsd`) rosną
+  przy każdym żądaniu.
+
+Weryfikacja w przeglądarce: `.tools/verify_platform_pages.py`.
+
 ## Struktura
 ```
 site/     frontend (wyczyszczony bundle + shell)

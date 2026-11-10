@@ -3,6 +3,7 @@
 The frontend calls these under ``/api/platform/*``; without them the
 "Create Secret Key" button silently fails.
 """
+import datetime
 import secrets
 import time
 
@@ -12,6 +13,8 @@ from fastapi.responses import JSONResponse
 from store import API_KEYS, REQUEST_LOGS, token_from_header, user_for
 
 router = APIRouter(prefix="/api/platform", tags=["platform"])
+
+PRICE_PER_1K = 0.0002
 
 
 def _auth(authorization: str):
@@ -111,13 +114,36 @@ async def usage(days: int = 14, authorization: str = Header(default="")):
     if err:
         return err
     logs = REQUEST_LOGS.get(_uid(user), [])
+    total_tokens = sum(l.get("totalTokens", 0) for l in logs)
     summary = {
         "totalRequests": len(logs),
-        "totalTokens": sum(l["totalTokens"] for l in logs),
-        "totalCost": round(sum(l["totalTokens"] for l in logs) / 1000 * 0.0002, 4),
+        "totalTokens": total_tokens,
+        "totalCost": round(total_tokens / 1000 * PRICE_PER_1K, 4),
         "balance": 25.0,
     }
-    return {"success": True, "summary": summary, "dailyUsage": []}
+    # The analytics chart reads one bucket per day, newest last.
+    buckets: dict[str, dict] = {}
+    for offset in range(days - 1, -1, -1):
+        day = datetime.date.today() - datetime.timedelta(days=offset)
+        buckets[day.isoformat()] = {
+            "date": day.isoformat(),
+            "formattedDate": day.strftime("%b %d"),
+            "requests": 0, "promptTokens": 0, "completionTokens": 0,
+            "totalTokens": 0, "cost": 0.0, "errors": 0,
+        }
+    for log in logs:
+        day = datetime.date.fromtimestamp(log.get("timestamp", 0) / 1000).isoformat()
+        bucket = buckets.get(day)
+        if bucket is None:
+            continue
+        bucket["requests"] += 1
+        bucket["promptTokens"] += log.get("promptTokens", 0)
+        bucket["completionTokens"] += log.get("completionTokens", 0)
+        bucket["totalTokens"] += log.get("totalTokens", 0)
+        bucket["cost"] = round(bucket["totalTokens"] / 1000 * PRICE_PER_1K, 4)
+        if log.get("statusCode", 200) >= 400:
+            bucket["errors"] += 1
+    return {"success": True, "summary": summary, "dailyUsage": list(buckets.values())}
 
 
 @router.get("/logs")

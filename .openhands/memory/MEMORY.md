@@ -241,6 +241,22 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
   zwracał HTML → panel czerwony).
 - Weryfikacja: `.tools/verify_ide_languages.py` (CDP, 4 sprawdzenia) → PASS.
 
+## API Platform — kontrakt z frontendem (od 2026-11-02)
+- Frontend woła `${pt}/platform/*` gdzie `pt="/api"` (template literal, więc
+  grep po `"/api/..."` tego NIE znajdzie — szukać `` `\${pt}/ ``).
+- Parser odpowiedzi `yt()`: sukces => `{success:true, data:<JSON>}`; dane są
+  pod `data`. Endpointy zwracają surowy JSON, nie kopertę `data`.
+- Wiersz logu: `statusCode`, `timestamp`, `durationMs`, `promptTokens`,
+  `completionTokens`, `totalTokens`, `keyName`. Bez nich tabela pokazuje
+  `undefined` (wcześniej backend wysyłał `status`/`createdAt` — błąd).
+- Streaming logowany w `finally` generatora SSE; gdy brak `usage`, tokeny
+  szacowane z długości tekstu (playground nie ustawia `stream_options`).
+- `dailyUsage` = jeden bucket na dzień, pola `date/formattedDate/requests/
+  promptTokens/completionTokens/totalTokens/cost/errors`.
+- `spendLimitUsd` => 429 po przekroczeniu.
+- PUŁAPKA TESTOWA: `_auth_headers()` w test_platform_api.py musi czyścić
+  `store.REQUEST_LOGS`, inaczej liczniki przeciekają między testami.
+
 ## Testy
 `pytest -q` → 31 testów (`app/test_platform_api.py`).
 

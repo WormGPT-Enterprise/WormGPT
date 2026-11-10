@@ -17,6 +17,7 @@ client = TestClient(main.app)
 def _auth_headers():
     store.SESSIONS.clear()
     store.API_KEYS.clear()
+    store.REQUEST_LOGS.clear()
     r = client.post("/api/login", json={"username": "tester", "password": "x"})
     return {"Authorization": f"Bearer {r.json()['token']}"}
 
@@ -88,9 +89,67 @@ def test_update_and_delete_key():
 
 def test_usage_logs_billing_shapes():
     h = _auth_headers()
-    assert client.get("/api/platform/usage", headers=h).json()["success"]
+    usage = client.get("/api/platform/usage", headers=h).json()
+    assert usage["success"]
     assert client.get("/api/platform/logs", headers=h).json()["logs"] == []
     assert client.get("/api/platform/billing", headers=h).json()["account"]
+    # The analytics chart renders one bucket per requested day.
+    assert len(usage["dailyUsage"]) == 14
+    assert set(usage["dailyUsage"][0]) >= {
+        "date", "formattedDate", "requests", "promptTokens",
+        "completionTokens", "totalTokens", "cost", "errors"}
+
+
+def test_log_rows_match_the_frontend_table():
+    """The Request Logs table reads statusCode/timestamp/durationMs/... —
+    a row missing them renders "undefined" for every cell."""
+    h = _auth_headers()
+    key = client.post("/api/platform/keys", headers=h,
+                      json={"name": "Logs App", "env": "test"}).json()["key"]
+    r = client.post("/api/v1/chat/completions",
+                    headers={"Authorization": "Bearer " + key["key"]},
+                    json={"model": "wormv6.2", "messages": [
+                        {"role": "user", "content": "ping"}], "stream": False})
+    assert r.status_code == 200
+    rows = client.get("/api/platform/logs", headers=h).json()["logs"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert set(row) >= {"id", "timestamp", "statusCode", "model", "promptTokens",
+                        "completionTokens", "totalTokens", "durationMs", "keyName"}
+    assert row["statusCode"] == 200 and row["model"] == "wormv6.2"
+    assert row["keyName"] == "Logs App"
+    assert row["totalTokens"] == row["promptTokens"] + row["completionTokens"]
+    assert row["timestamp"] > 0 and row["durationMs"] >= 0
+
+
+def test_key_usage_stats_and_daily_buckets_update():
+    h = _auth_headers()
+    key = client.post("/api/platform/keys", headers=h,
+                      json={"name": "Stats", "env": "live"}).json()["key"]
+    assert key["totalRequests"] == 0 and key["lastUsedAt"] is None
+    client.post("/api/v1/chat/completions",
+                headers={"Authorization": "Bearer " + key["key"]},
+                json={"model": "wormv6.2", "messages": [
+                    {"role": "user", "content": "hi"}], "stream": False})
+    stats = client.get("/api/platform/keys", headers=h).json()["keys"][0]
+    assert stats["totalRequests"] == 1
+    assert stats["lastUsedAt"] and stats["totalSpentUsd"] > 0
+    today = client.get("/api/platform/usage?days=3", headers=h).json()["dailyUsage"][-1]
+    assert today["requests"] == 1 and today["totalTokens"] > 0
+
+
+def test_spend_limit_blocks_further_requests():
+    h = _auth_headers()
+    key = client.post("/api/platform/keys", headers=h,
+                      json={"name": "Capped", "env": "test",
+                            "spendLimitUsd": 0.000001}).json()["key"]
+    hdr = {"Authorization": "Bearer " + key["key"]}
+    body = {"model": "wormv6.2", "messages": [{"role": "user", "content": "hi"}],
+            "stream": False}
+    assert client.post("/api/v1/chat/completions", headers=hdr, json=body).status_code == 200
+    blocked = client.post("/api/v1/chat/completions", headers=hdr, json=body)
+    assert blocked.status_code == 429
+    assert "limit" in blocked.json()["error"]["message"].lower()
 
 
 def test_identity_is_unique_per_alias():
