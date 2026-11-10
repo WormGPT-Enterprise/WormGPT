@@ -281,3 +281,14 @@ wypychane, chyba że użytkownik poprosi.
   nie-SPA (np. `/integrations`) MUSI tam trafić, inaczej cache'owany
   `index.html` ją zasłania. Po zmianie `index.html` zaktualizować jego
   `revision` w precache (md5). Testy: `app/test_integrations.py`.
+
+## Uruchamianie VS Code (OpenVSCode Server) — od 2026-11-02
+- W środowisku jest OpenVSCode Server (`$OPENVSCODE_SERVER_ROOT`, port 60001,
+  token w `$OPENVSCODE_SERVER_ROOT/../`; port w `$OH_VSCODE_PORT`).
+- Publiczny adres: `https://vscode-<RUNTIME_ID>.prod-runtime.all-hands.dev/?tkn=<token>&folder=workspace`.
+  Dokładny URL (z tokenem) daje `GET http://127.0.0.1:60000/api/vscode/url`
+  z nagłówkiem `X-Session-API-Key: $SESSION_API_KEY` (klucz jest w `/proc/1/environ`,
+  NIE w env powłoki). `RUNTIME_URL` to Agent Server, nie edytor.
+- Instalacja rozszerzenia: `.tools/install_vscode_extension.sh` (build + VSIX +
+  `openvscode-server --install-extension`). Aktywację potwierdza
+  `~/.openvscode-server/data/logs/*/exthost1/remoteexthost.log`.
