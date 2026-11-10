@@ -1,0 +1,171 @@
+{
+ "nvidia/nemotron-3-ultra-550b-a55b": {
+  "ms": [
+   1528.4504890441895,
+   4695.637226104736,
+   745.2483177185059,
+   34611.23323440552
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 10395
+ },
+ "nvidia/nemotron-3.5-super-vl-120b-a12b": {
+  "ms": [
+   841.9888019561768,
+   739.3462657928467,
+   623.0475902557373,
+   4437.9518032073975
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 1660
+ },
+ "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {
+  "ms": [
+   395.89548110961914,
+   559.0686798095703,
+   475.89898109436035,
+   4096.1809158325195
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 1381
+ },
+ "nvidia/nemotron-3.5-lightning-30b-a3b": {
+  "ms": [
+   3002.969741821289,
+   1550.2474308013916,
+   1714.1063213348389,
+   4936.489582061768
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 2800
+ },
+ "nvidia/nemotron-3.5-bolt-e4b": {
+  "ms": [
+   216.39657020568848,
+   211.65704727172852,
+   218.05191040039062,
+   5158.181428909302
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": false,
+  "latency": 1451
+ },
+ "mistralai/mistral-large-4-1t-a52b": {
+  "ms": [
+   12548.538208007812,
+   2408.3199501037598,
+   7861.7424964904785,
+   17864.657163619995
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 10170
+ },
+ "minimaxai/minimax-m3.1-flash": {
+  "ms": [
+   2563.4970664978027,
+   1450.9239196777344,
+   765.2244567871094,
+   26054.137468338013
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 7708
+ },
+ "meta/muse-glimmer-30b": {
+  "ms": [
+   13433.715343475342,
+   7523.0467319488525,
+   3531.9912433624268,
+   40948.93527030945
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": false,
+  "latency": 16359
+ },
+ "meta/llama-3.2-90b-vision-instruct": {
+  "ms": [
+   56069.21362876892,
+   38082.356214523315,
+   60904.361724853516,
+   67073.71640205383
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 55532
+ },
+ "poolside/laguna-xs-2.1": {
+  "ms": [
+   113.10958862304688,
+   278.57136726379395,
+   1762.321949005127,
+   4970.247983932495
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 1781
+ },
+ "stepfun-ai/step-5-preview": {
+  "ms": [
+   922.4493503570557,
+   39093.138456344604,
+   9905.12204170227,
+   26896.87728881836
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 19204
+ },
+ "google/gemma-4-31b-it": {
+  "ms": [
+   1204.9956321716309,
+   590.5947685241699,
+   593.4562683105469,
+   68998.58283996582
+  ],
+  "code": true,
+  "reason": true,
+  "math": true,
+  "uncen": true,
+  "latency": 17846
+ },
+ "google/diffusiongemma-26b-a4b-it": {
+  "ms": [
+   945.9681510925293,
+   682.1842193603516,
+   622.8363513946533,
+   5496.838808059692
+  ],
+  "code": true,
+  "reason": false,
+  "math": false,
+  "uncen": true,
+  "latency": 1936
+ }
+}

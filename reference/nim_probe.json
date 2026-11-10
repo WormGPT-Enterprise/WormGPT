@@ -1,0 +1,506 @@
+[
+ {
+  "id": "01-ai/yi-large",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "adept/fuyu-8b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "ai21labs/jamba-1.5-large-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "aisingapore/sea-lion-7b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "bigcode/starcoder2-15b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "databricks/dbrx-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "deepseek-ai/deepseek-coder-6.7b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "deepseek-ai/deepseek-v4.1-flash",
+  "ok": false,
+  "status": "EXC",
+  "detail": ""
+ },
+ {
+  "id": "google/codegemma-1.1-7b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/codegemma-7b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/deplot",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/diffusiongemma-26b-a4b-it",
+  "ok": true,
+  "content": "I am Gemma 4, developed by Google DeepMind, and I am best at processing and understanding text and images to provide helpful responses.",
+  "reasoning": ""
+ },
+ {
+  "id": "google/gemma-2b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/gemma-3-12b-it",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/gemma-3-4b-it",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "google/gemma-4-31b-it",
+  "ok": true,
+  "content": "I am GPT-4o by OpenAI, and I am best at versatile reasoning, creative writing, and complex problem-solving.",
+  "reasoning": ""
+ },
+ {
+  "id": "google/recurrentgemma-2b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "ibm/granite-3.0-3b-a800m-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "ibm/granite-3.0-8b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "ibm/granite-34b-code-instruct",
+  "ok": false,
+  "status": 502,
+  "detail": "{}"
+ },
+ {
+  "id": "ibm/granite-8b-code-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "meta/codellama-70b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "meta/llama-3.2-90b-vision-instruct",
+  "ok": true,
+  "content": "I'm an LLaMA model by Meta AI, and I'm best at generating human-like text responses to a wide range of questions and topics.",
+  "reasoning": ""
+ },
+ {
+  "id": "meta/llama-guard-4-12b",
+  "ok": true,
+  "content": "safe",
+  "reasoning": ""
+ },
+ {
+  "id": "meta/llama2-70b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "meta/muse-glimmer-30b",
+  "ok": true,
+  "content": "",
+  "reasoning": "Reply in ONE short sentence: what model are you (exact name + maker), and what are you best at?\n\nReply in ONE short sentence: what model are you (exact name + maker), and what are you best at?\n\nWe need to reply in ONE short sentence. What model are you (exact name + maker), and what are you best at?"
+ },
+ {
+  "id": "microsoft/kosmos-2",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "microsoft/phi-3-vision-128k-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "microsoft/phi-3.5-moe-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "minimaxai/minimax-m3.1-flash",
+  "ok": true,
+  "content": "",
+  "reasoning": "We need answer one short sentence: what model exact name + maker, and what best at. Need identify model. System says \"You are an AI assistant accessed via an API.\" Developer says \"You are a helpful assistant.\" No explicit model name. But as model, likely MiniMax-M3.1 per developer? Wait developer me"
+ },
+ {
+  "id": "mistralai/codestral-22b-instruct-v0.1",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "mistralai/mistral-7b-instruct-v0.3",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "mistralai/mistral-large",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "mistralai/mistral-large-2-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "mistralai/mistral-large-4-1t-a52b",
+  "ok": true,
+  "content": "",
+  "reasoning": "The user wants a reply in ONE short sentence. I need to state the exact model name and maker, and what I'm best at.\n\nI am an AI assistant made by Mistral AI. The exact model name is not explicitly stated in my system prompt, but based on my knowledge cutoff and capabilities, I am likely Mistral Larg"
+ },
+ {
+  "id": "mistralai/mixtral-8x22b-v0.1",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "moonshotai/kimi-k2.6",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nv-mistralai/mistral-nemo-12b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/ai-synthetic-video-detector",
+  "ok": false,
+  "status": 500,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/cosmos-reason2-8b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/embed-qa-4",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/ising-calibration-1.5-31b",
+  "ok": true,
+  "content": "I am NVIDIA Ising-Calibration-1.5, developed by NVIDIA to analyze qubit calibration experiment data.",
+  "reasoning": ""
+ },
+ {
+  "id": "nvidia/llama-3.1-nemoguard-8b-content-safety",
+  "ok": false,
+  "status": "EXC",
+  "detail": ""
+ },
+ {
+  "id": "nvidia/llama-3.1-nemoguard-8b-topic-control",
+  "ok": false,
+  "status": 500,
+  "detail": "{'error': 'Error during inference of request chat-3db72f0858d940de98542e0e7110ef5e -- Enco"
+ },
+ {
+  "id": "nvidia/llama-3.1-nemotron-51b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama-3.1-nemotron-70b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama-3.1-nemotron-safety-guard-8b-v3",
+  "ok": true,
+  "content": "{\"User Safety\": \"safe\"}",
+  "reasoning": ""
+ },
+ {
+  "id": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama-3.2-nv-embedqa-1b-v1",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama-nemotron-embed-vl-1b-v2",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/llama3-chatqa-1.5-70b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/mistral-nemo-minitron-8b-8k-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3-embed-1b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "ok": true,
+  "content": "",
+  "reasoning": "The user asks: \"Reply in ONE short sentence: what model are you (exact name + maker), and what are you best at?\" So we need to give a single short sentence, containing the model name and maker, and what I'm best at. According to system message: identity: \"Nemotron\" created by NVIDIA. So answer: \"I a"
+ },
+ {
+  "id": "nvidia/nemotron-3-super-120b-a12b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3-ultra-550b-a55b",
+  "ok": true,
+  "content": "I am Nemotron 3 Ultra, created by NVIDIA researchers, and I excel at complex reasoning, coding, and multilingual tasks.",
+  "reasoning": "The user wants a one-sentence reply stating my exact name, maker, and what I'm best at."
+ },
+ {
+  "id": "nvidia/nemotron-3.5-bolt-e4b",
+  "ok": true,
+  "content": "I am Gemma 4, a model developed by Google DeepMind, and I excel at text understanding and generation.",
+  "reasoning": ""
+ },
+ {
+  "id": "nvidia/nemotron-3.5-content-safety",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3.5-embed-1b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3.5-embed-8b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "ok": true,
+  "content": "",
+  "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - User asks: \"Reply in ONE short sentence: what model are you (exact name + maker), and what are you best at?\"\n   - Constraints: \n     - ONE short sentence\n     - Must include exact name + maker\n     - Must state what I'm best at\n\n2.  **Iden"
+ },
+ {
+  "id": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "ok": true,
+  "content": "",
+  "reasoning": "The user wants a one-sentence reply answering: exact model name + maker, and what I am best at. Need to be concise, one short sentence. I am a large language model trained by researchers from NVIDIA. Exact name? I don't have a specific model name like \"Nemotron\" unless known. I should say: I'm a lar"
+ },
+ {
+  "id": "nvidia/nemotron-4-340b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-4-340b-reward",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-nano-3-30b-a3b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nemotron-parse",
+  "ok": false,
+  "status": 400,
+  "detail": "{'object': 'error', 'message': 'Content cannot be a plain string. The model does not suppo"
+ },
+ {
+  "id": "nvidia/nemotron-parse-2.0",
+  "ok": false,
+  "status": 502,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/neva-22b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nv-embedqa-mistral-7b-v2",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/nvclip",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/riva-translate-4b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "nvidia/riva-translate-4b-instruct-v2",
+  "ok": true,
+  "content": "Veuillez r\u00e9pondre en une seule phrase courte: quel mod\u00e8le \u00eates-vous (nom exact + fabricant) et \u00e0 quoi \u00eates-vous le meilleur ?",
+  "reasoning": ""
+ },
+ {
+  "id": "nvidia/vila",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "openai/gpt-oss-20b",
+  "ok": false,
+  "status": "EXC",
+  "detail": ""
+ },
+ {
+  "id": "poolside/laguna-xs-2.1",
+  "ok": true,
+  "content": "I\u2019m **o1**, a large language model by OpenAI, and I excel at complex reasoning tasks that require careful step-by-step analysis.",
+  "reasoning": ""
+ },
+ {
+  "id": "snowflake/arctic-embed-l",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "stepfun-ai/step-5-preview",
+  "ok": true,
+  "content": "I\u2019m Step, a large multi-modal model developed by StepFun (\u9636\u8dc3\u661f\u8fb0), best at advanced visual reasoning, logical problem-solving, and multi-language knowledge Q&A",
+  "reasoning": "The user wants a one-sentence reply stating my exact model name and maker, plus what I'm best at. I need to be concise and accurate.\n\nI am Step, developed by StepFun (\u9636\u8dc3\u661f\u8fb0). I should mention my full name and maker, and highlight my core strengths: multi-modal reasoning, visual understanding, logical"
+ },
+ {
+  "id": "writer/palmyra-creative-122b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "writer/palmyra-fin-70b-32k",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "writer/palmyra-med-70b",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "writer/palmyra-med-70b-32k",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ },
+ {
+  "id": "z-ai/glm-5.3-flash",
+  "ok": false,
+  "status": "EXC",
+  "detail": ""
+ },
+ {
+  "id": "zyphra/zamba2-7b-instruct",
+  "ok": false,
+  "status": 404,
+  "detail": "{}"
+ }
+]
