@@ -201,8 +201,23 @@ strony z referencją. Do kolorów: zrzut + dekoder PNG na zlib (bez Pillow).
   `POST /api/login` i wstrzyknąć `localStorage.setItem('sessionToken',...)`,
   potem wejść na `/chat`. Test klika 7 menu i tworzy plik (PASS).
 
+## Usuwanie folderów w IDE (dodane, bo oryginał NIE MA tej funkcji)
+- W oryginale wiersz folderu ma TYLKO "Download <folder>.zip"; brak kosza,
+  brak `onContextMenu` (0 wystąpień). Nie da się usunąć folderu — jedyna droga
+  to plik `worm-ide-workspace-v3` w localStorage (usunąć pliki, potem wpis
+  z `folders`; kolejność ważna, bo lista = Set("Agent Project", folders, ...files.projectName)).
+- Dodane przez `.tools/patch_ide_folder_delete.py` (po `patch_ide_menu.py`):
+  1) kosz na wierszu folderu (hover, klasa `group` na wierszu), wymaga
+     DRUGIEGO kliknięcia (stan `ZqDel` w ES, przycisk robi się czerwony),
+  2) File → "Delete Folder" (disabled dla "Agent Project" przez `hasActiveFolder`).
+- PUŁAPKA: `$` (zaznaczony folder) JEST doliczany do listy wierszy
+  (`ws` = Set z `$`), więc po usunięciu zaznaczonego folderu trzeba zresetować
+  zaznaczenie (`$===L&&q("Agent Project")`), inaczej wiersz zostaje na ekranie.
+- Weryfikacja: `.tools/verify_folder_delete.py` (CDP) — 3 scenariusze: kosz
+  z potwierdzeniem, File→Delete Folder, guard na Agent Project. PASS.
+
 ## Testy
-`pytest -q` → 17 testów (`app/test_platform_api.py`).
+`pytest -q` → 18 testów (`app/test_platform_api.py`).
 
 ## Git
 Remote: WormGPT-Enterprise/WormGPT. Gałąź `main`; lokalne commity NIE są

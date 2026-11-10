@@ -177,6 +177,16 @@ def test_ide_bundle_has_working_menu():
     assert '"File","Edit","Selection","View","Run","Terminal","Help"].map' not in bundle
 
 
+def test_ide_bundle_has_folder_delete():
+    """The explorer must offer a way to remove a folder and its files."""
+    bundle = (Path(__file__).resolve().parent.parent
+              / "site" / "assets" / "index-CeWFP5bj.js").read_text(encoding="utf-8")
+    assert "[ZqDel,setZqDel]" in bundle                 # confirm-before-delete state
+    assert 'title:ZqDel===L?"Click again to delete folder and its files"' in bundle
+    assert 'item("Delete Folder","",P.onDeleteFolder,!P.hasActiveFolder)])' in bundle
+    assert 'hasActiveFolder:$!=="Agent Project"' in bundle
+
+
 def test_service_worker_revision_matches_bundle():
     """Precache must carry a content revision, else clients keep a stale bundle."""
     import hashlib
