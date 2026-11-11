@@ -68,7 +68,9 @@ async def vscode_config(req: Request):
         "vsixUrl": f"{base}/api/integrations/vscode/extension",
         "install": [
             "Download wormgpt-vscode.vsix",
-            "VS Code -> Extensions -> ... -> Install from VSIX",
+            "VS Code -> Extensions -> ... -> Install from VSIX (do NOT double-click"
+            " the file on Windows: that opens the Visual Studio installer, not VS Code)",
+            "Or from a terminal: code --install-extension wormgpt-vscode.vsix",
             "Run command 'WormGPT: Set API Key' and paste your wrm_ key",
             "Open the Chat view and pick the WormGPT provider",
         ],

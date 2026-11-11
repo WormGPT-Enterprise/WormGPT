@@ -6,7 +6,11 @@ Use WormGPT models inside the VS Code chat view.
 
 1. Download `wormgpt-vscode.vsix` from the API Platform (`/integrations`) or
    from the "VSCode Integration" card on the site.
-2. In VS Code: **Extensions → … → Install from VSIX…** and pick the file.
+2. Install it in **VS Code** — do not double-click the file on Windows, that
+   launches the Visual Studio installer (which then reports "one or more
+   extensions are targeted at VS Code"). Either:
+   - **Extensions → … → Install from VSIX…** and pick the file, or
+   - from a terminal: `code --install-extension wormgpt-vscode.vsix`
 3. Run the command **WormGPT: Set API Key** and paste a key created in the
    WormGPT API Platform (`wrm_live_...`).
 4. Open the chat view, pick the **WormGPT** provider, and select a model.
