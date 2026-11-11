@@ -10,10 +10,31 @@ def sse(obj):
 def _emit(t, payload):
     return sse({"type": t, "payload": payload})
 
+def _merge_system(messages, extra):
+    """Append `extra` to the leading system message (or add one).
+
+    `with_identity` already guarantees a system message first, so the IDE's
+    agent instructions are appended to it rather than replacing the identity.
+    """
+    out = list(messages or [])
+    for i, m in enumerate(out):
+        if m.get("role") == "system":
+            content = (m.get("content") or "").rstrip()
+            out[i] = {**m, "content": f"{content}\n\n{extra}" if content else extra}
+            return out
+    return [{"role": "system", "content": extra}] + out
+
+
 async def stream_chat(body):
     alias = body.get("model", "wormgpt-v6")
     model = nv.resolve_model(alias)
     messages = nv.with_identity(body.get("messages", []), alias)
+    # The Worm IDE sends its agent instructions in `systemPrompt`, not as a
+    # message. Dropping it made the agent answer with markdown in the chat
+    # instead of emitting <<<FILE>>> blocks, so no file was ever written.
+    system_prompt = (body.get("systemPrompt") or "").strip()
+    if system_prompt:
+        messages = _merge_system(messages, system_prompt)
     if not nv.has_key():
         yield _emit("status", "NVIDIA_API_KEY is not set on the server.")
         yield _emit("content", "[no key] Set NVIDIA_API_KEY in .env to enable chat.")

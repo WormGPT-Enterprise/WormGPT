@@ -310,3 +310,18 @@ wypychane, chyba że użytkownik poprosi.
 - POTWIERDZONE (2026-11-02): ustawienie Gateway URL na publiczny adres
   `https://work-1-<RUNTIME_ID>.prod-runtime.all-hands.dev/v1` rozwiązuje
   ERR_NAME_NOT_RESOLVED w rozszerzeniu VS Code. Klucz `wrm_live_...` był OK.
+
+## PUŁAPKA (naprawiona): agent IDE pisał kod w czacie (2026-11-02)
+- OBJAW: "Agent zamiast generować kod pisze kod w chat" — brak plików.
+- PRZYCZYNA: Worm IDE wysyła instrukcję formatu plików w polu `systemPrompt`
+  (razem z `ideAgent:true`, `ideTalk:bool`), a `app/chat_stream.py` je IGNOROWAŁ.
+  Bez instrukcji model zwracał markdown, więc parser `<<<FILE ...>>>` nie miał
+  czego sparsować i nie powstawał żaden plik.
+- DOWÓD: to samo żądanie bez `systemPrompt` -> 14 729 znaków prozy, 0 bloków;
+  z `systemPrompt` -> `<<<FILE path="index.html">>>`.
+- FIX: `_merge_system()` w `chat_stream.py` dokleja `systemPrompt` do pierwszej
+  wiadomości systemowej (identity + conceal zostają). Testy w
+  `app/test_chat_stream.py`.
+- UWAGA: frontend NIE parsuje markdown jako fallback — wymaga `<<<FILE>>>`.
+  Tryb rozmowy (`ideTalk`) używa innego promptu (KF) i tam odpowiedź w czacie
+  jest poprawna.
