@@ -42,19 +42,33 @@ export class WormGptChatProvider implements vscode.LanguageModelChatProvider {
 		const controller = new AbortController();
 		const sub = token.onCancellationRequested(() => controller.abort());
 		try {
-			const response = await fetch(`${baseUrl}/chat/completions`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${apiKey}`,
-				},
-				body: JSON.stringify({
-					model: model.id,
-					messages: toWireMessages(messages),
-					stream: true,
-				}),
-				signal: controller.signal,
-			});
+			let response: Response;
+			try {
+				response = await fetch(`${baseUrl}/chat/completions`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${apiKey}`,
+					},
+					body: JSON.stringify({
+						model: model.id,
+						messages: toWireMessages(messages),
+						stream: true,
+					}),
+					signal: controller.signal,
+				});
+			} catch (err) {
+				if (controller.signal.aborted) {
+					throw err;
+				}
+				const detail = err instanceof Error ? err.message : String(err);
+				// A dead gateway host fails here as a DNS/connection error, never as an
+				// HTTP status, so name the URL to make the cause obvious.
+				throw new Error(
+					`Cannot reach the WormGPT gateway at ${baseUrl}. ` +
+					`Run "WormGPT: Set Gateway URL" and point it at your server. (${detail})`
+				);
+			}
 			if (!response.ok || !response.body) {
 				const detail = await response.text().catch(() => '');
 				throw new Error(`WormGPT request failed (HTTP ${response.status}). ${detail.slice(0, 300)}`);

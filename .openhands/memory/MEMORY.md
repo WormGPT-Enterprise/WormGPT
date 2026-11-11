@@ -292,3 +292,18 @@ wypychane, chyba że użytkownik poprosi.
 - Instalacja rozszerzenia: `.tools/install_vscode_extension.sh` (build + VSIX +
   `openvscode-server --install-extension`). Aktywację potwierdza
   `~/.openvscode-server/data/logs/*/exthost1/remoteexthost.log`.
+
+## Pułapka: ERR_NAME_NOT_RESOLVED w rozszerzeniu VS Code (2026-11-02)
+- Domyślny `wormgpt.baseUrl` = `https://api.wormgpt.live/v1`, ale subdomena
+  `api.wormgpt.live` NIE MA REKORDU DNS (zweryfikowane: `socket.gethostbyname`
+  rzuca "Name or service not known"; `wormgpt.live` istnieje, `api.` nie).
+  VS Code zgłasza wtedy: "502 net::ERR_NAME_NOT_RESOLVED", bo fetch pada na
+  DNS, a nie na HTTP — nie ma kodu statusu.
+- Rozwiązanie: `WormGPT: Set Gateway URL` -> publiczny adres backendu
+  `https://<RUNTIME_ID>.prod-runtime...` (work-1) + `/v1`. NIE `127.0.0.1`.
+- W `chatProvider.ts` błąd fetch jest teraz łapany osobno i komunikuje
+  "Cannot reach the WormGPT gateway at <url>", bo inaczej VS Code pokazuje
+  tylko "Failed to get response from the AI model; retried 5 times".
+- Bramka `POST /v1/chat/completions` DZIAŁA (sprawdzone realnym kluczem
+  `wrm_live_...`, streaming OK). Klucze/sesje są TYLKO w pamięci (`store.py`),
+  giną po restarcie serwera — trzeba wygenerować nowy klucz po restarcie.
