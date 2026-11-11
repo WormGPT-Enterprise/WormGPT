@@ -307,3 +307,6 @@ wypychane, chyba że użytkownik poprosi.
 - Bramka `POST /v1/chat/completions` DZIAŁA (sprawdzone realnym kluczem
   `wrm_live_...`, streaming OK). Klucze/sesje są TYLKO w pamięci (`store.py`),
   giną po restarcie serwera — trzeba wygenerować nowy klucz po restarcie.
+- POTWIERDZONE (2026-11-02): ustawienie Gateway URL na publiczny adres
+  `https://work-1-<RUNTIME_ID>.prod-runtime.all-hands.dev/v1` rozwiązuje
+  ERR_NAME_NOT_RESOLVED w rozszerzeniu VS Code. Klucz `wrm_live_...` był OK.
