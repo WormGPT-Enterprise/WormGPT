@@ -325,3 +325,64 @@ wypychane, chyba że użytkownik poprosi.
 - UWAGA: frontend NIE parsuje markdown jako fallback — wymaga `<<<FILE>>>`.
   Tryb rozmowy (`ideTalk`) używa innego promptu (KF) i tam odpowiedź w czacie
   jest poprawna.
+
+## AUDYT 2026-11-02 (bez commitow) — ustalenia i poprawki
+Wzorzec architektury: `app/main.py` montuje 5 routerow; `completions` 2x
+(bez prefiksu + `/api`). Caly stan w `app/store.py` (dict w RAM, brak DB).
+Frontend = zminifikowany bundle `site/assets/index-CeWFP5bj.js` (1,72 MB);
+NIE ma `app.js` ani zrodel — notatki o nich sa NIEAKTUALNE. Koperta API:
+`{success, data}` parsowana przez `yt()`; bledy -> `{success:false, error}`.
+
+POTWIERDZONE BUGI (wszystkie odtworzone):
+- P0: `runner.py` uruchamia kod uzytkownika bez piaskownicy -> czyta
+  `app/.env`, dziedziczy `NVIDIA_API_KEY` w env (load_dotenv w main.py:25),
+  ma pelny dostep do sieci (`connect_ex('1.1.1.1',53)==0`). NIE naprawione
+  (wymaga kontenera/seccomp). Test regresyjny w `app/test_hardening.py`.
+- P1: `spendLimitUsd` bez walidacji -> `float("abc")` = 500 na kazdym czacie.
+- P1: `usage?days=100000` -> 100k bucketow (~10 MB, 2 s); `days=1e9` -> 500.
+- P1: `REQUEST_LOGS` bez limitu -> OOM (cap MAX_LOG_ROWS=1000 w store.py).
+- P1: `POST /api/advertisement` bez auth + brak izolacji (cross-tenant leak).
+- P1: `POST /api/chats-wipe` bez auth.
+- P1: zly JSON / nieznany model / padniety upstream -> 500 text/plain.
+- P1: nieznane `/api/*` -> 200 HTML (SPA shell) zamiast 404 JSON.
+- P1: login przyjmuje DOWOLNE haslo (brak weryfikacji) — NIE naprawione,
+  decyzja produktowa.
+- P2: `DELETE /keys?id=none` zwracalo 200; teraz 404.
+- P2: `limit=-1` w /logs -> ujemne ciecie listy; teraz Query(ge=1,le=500).
+- P2: rate limit 600 rpm i "Gateway 99.9%" tylko deklarowane, nieegzekwowane.
+- P2: `_key_record` skanuje O(users*keys) na kazde zadanie; klucze plaintext
+  w RAM, porownanie `==` zamiast `compare_digest`.
+- P2: sesje bez TTL; `_log_request` w `finally` zapisywal 200 dla urwanego
+  strumienia (teraz 502).
+
+WAZNE: test `test_runner_runs_java_lua_and_csharp` FAILUJE od poczatku —
+brak `javac`/`lua5.4`/`mcs` na hoscie (srodowisko, nie kod). Baseline: 44 pass.
+Po poprawkach: 70 pass, ten sam 1 pre-existing fail.
+Nowe testy: `app/test_hardening.py` (24 testy).
+
+## WDROZONE POPRAWKI (audyt, commit przed 2026-11-02)
+Uzytkownik zatwierdzil wdrozenie ("tak"). Zmiany w `app/`:
+- `store.py`: `MAX_LOG_ROWS=1000`, `SESSION_TTL=12h` + `session_create`/
+  `prune_sessions`/`user_for` (brak `expiresAt` = bez wygasania, dla testow),
+  `CREDENTIALS` + PBKDF2 (`hash_password`/`verify_password`/`set_password`),
+  `KEY_INDEX` (hash->record) + `find_key` (compare_digest), `allow_request`
+  (token bucket RPM).
+- `platform_api.py`: walidacja `spendLimitUsd` (`_parse_spend_limit`),
+  Query(ge/le) dla days i logs, DELETE 404, `keyHash` w rekordzie,
+  `_public` ukrywa `key` ORAZ `keyHash`, `register_key`/`KEY_INDEX.pop`.
+- `completions.py`: `find_key` zamiast skanu, walidacja modelu (400),
+  cap logow, `_over_limit` odporne na typ, 502 przy padnietym upstreamie,
+  status 502 dla urwanego strumienia, rate limit z `rateLimitRpm`.
+- `community_api.py`: auth + izolacja `ownerId` dla `/advertisement`.
+- `main.py`: `lifespan` (zamiast `on_event`), weryfikacja hasla, TTL sesji,
+  auth na `chats-wipe`, walidacja JSON w `chat-proxy`/`login`, handler 500
+  -> JSON, JSON 404 dla `/api/*` i `/v1/*` (catch-all SPA), `is_relative_to`.
+- `runner.py`: `_child_env()` usuwa zmienne z KEY/SECRET/TOKEN/PASSWORD,
+  `_apply_limits` (RLIMIT_AS/CPU/NPROC/FSIZE) przez `preexec_fn`.
+KLUCZOWE: runner NADAL nie jest sandboxem — `.env` jest czytelny z FS,
+siec wychodzaca dziala. Env-scrub blokuje tylko dziedziczenie klucza.
+PELNY sandbox wymaga kontenera/namespace (host nie ma bwrap; `unshare -rn`
+= EPERM, uid 10001 bez roota).
+TESTS: 82 passed, 1 pre-existing fail (brak javac/lua/mcs na hoscie).
+UWAGA: `run.sh` robi `cd app` i uruchamia `uvicorn main:app`; nie odpalac
+`uvicorn app.main:app` (ModuleNotFoundError). Zabijac po PID, nie `pkill -f`.

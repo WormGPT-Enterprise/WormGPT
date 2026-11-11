@@ -9,20 +9,18 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 import nvidia_client as nv
-from store import API_KEYS, REQUEST_LOGS, user_for
+from store import MAX_LOG_ROWS, REQUEST_LOGS, allow_request, find_key, user_for
 
 router = APIRouter(tags=["openai-compat"])
 
 PRICE_PER_1K = 0.0002
 
+KNOWN_ALIASES = frozenset(nv.MODEL_ALIASES)
+
 
 def _key_record(key):
     """Return (user_id, key record) for a platform key, else (None, None)."""
-    for uid, records in API_KEYS.items():
-        for r in records:
-            if r.get("key") == key:
-                return uid, r
-    return None, None
+    return find_key(key)
 
 
 def _bearer(req):
@@ -68,13 +66,21 @@ def _log_request(uid, key_record, alias, status, usage, duration_ms):
         "durationMs": duration_ms,
         "keyName": (key_record or {}).get("name") or "Session",
     })
+    # The store is in-memory, so an uncapped list grows until the worker dies.
+    del logs[MAX_LOG_ROWS:]
 
 
 def _over_limit(key_record):
     limit = (key_record or {}).get("spendLimitUsd")
     if limit is None:
         return False
-    return (key_record.get("totalSpentUsd") or 0.0) >= float(limit)
+    try:
+        limit = float(limit)
+    except (TypeError, ValueError):
+        # A limit that is not a number cannot be evaluated; treat it as no limit
+        # instead of raising inside the request path (used to return a 500).
+        return False
+    return (key_record.get("totalSpentUsd") or 0.0) >= limit
 
 
 def _mask_model(text, alias, real):
@@ -123,8 +129,14 @@ async def chat_completions(req: Request):
         return JSONResponse({"error": {"message": "Invalid API key. Create one in the API Platform, then pass it as a Bearer token."}}, 401)
     if _over_limit(key_record):
         return JSONResponse({"error": {"message": "Spend limit reached for this API key. Raise the limit in the API Platform to continue."}}, 429)
+    if key_record is not None:
+        rpm = int(key_record.get("rateLimitRpm") or 0)
+        if not allow_request(key_record["id"], rpm):
+            return JSONResponse({"error": {"message": f"Rate limit of {rpm} requests/minute exceeded for this key."}}, 429)
     body = await req.json()
     alias = body.get("model", "wormv-auto")
+    if alias not in KNOWN_ALIASES:
+        return JSONResponse({"error": {"message": f"Unknown model '{alias}'. See /api/models for the available ids."}}, 400)
     model = nv.resolve_model(alias)
     messages = nv.with_identity(body.get("messages", []), alias)
     payload = {"model": model, "messages": messages,
@@ -141,9 +153,14 @@ async def chat_completions(req: Request):
         prompt_chars = sum(len(str(m.get("content") or "")) for m in messages)
         headers["Accept"] = "text/event-stream"
         client = httpx.AsyncClient(timeout=None)
-        up = await client.send(
-            client.build_request("POST", nv.BASE_URL + "/chat/completions",
-                                 json=payload, headers=headers), stream=True)
+        try:
+            up = await client.send(
+                client.build_request("POST", nv.BASE_URL + "/chat/completions",
+                                     json=payload, headers=headers), stream=True)
+        except httpx.HTTPError:
+            await client.aclose()
+            _log_request(owner, key_record, alias, 502, {}, 0)
+            return JSONResponse({"error": {"message": "Upstream provider is unreachable."}}, 502)
         if up.status_code != 200:
             txt = await up.aread()
             await up.aclose(); await client.aclose()
@@ -155,6 +172,7 @@ async def chat_completions(req: Request):
             # playground does not, so count the streamed text and estimate.
             usage = {}
             chars = 0
+            status = 200
             try:
                 async for line in up.aiter_lines():
                     if not line:
@@ -172,20 +190,28 @@ async def chat_completions(req: Request):
                         except Exception:
                             pass
                     yield chunk + "\n\n"
+            except httpx.HTTPError:
+                # The stream broke mid-answer: record it as a failure so the
+                # logs/usage views do not report a 200 for a truncated reply.
+                status = 502
             finally:
                 await up.aclose(); await client.aclose()
-                if not usage.get("total_tokens"):
+                if status == 200 and not usage.get("total_tokens"):
                     prompt = math.ceil(prompt_chars / 4)
                     completion = math.ceil(chars / 4)
                     usage = {"prompt_tokens": prompt,
                              "completion_tokens": completion,
                              "total_tokens": prompt + completion}
-                _log_request(owner, key_record, alias, 200, usage,
+                _log_request(owner, key_record, alias, status, usage,
                              int((time.monotonic() - started) * 1000))
 
         return StreamingResponse(gen(), media_type="text/event-stream")
-    async with httpx.AsyncClient(timeout=None) as c:
-        r = await c.post(nv.BASE_URL + "/chat/completions", json=payload, headers=headers)
+    try:
+        async with httpx.AsyncClient(timeout=None) as c:
+            r = await c.post(nv.BASE_URL + "/chat/completions", json=payload, headers=headers)
+    except httpx.HTTPError:
+        _log_request(owner, key_record, alias, 502, {}, 0)
+        return JSONResponse({"error": {"message": "Upstream provider is unreachable."}}, 502)
     data = r.json()
     if isinstance(data, dict) and data.get("model") == model:
         data["model"] = alias

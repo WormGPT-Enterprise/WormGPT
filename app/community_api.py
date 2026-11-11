@@ -67,16 +67,23 @@ async def ads_list(authorization: str = Header(default="")):
     user, err = _user(authorization)
     if err:
         return err
-    return {"success": True, "ads": ADS}
+    # Adverts are per-user: the list used to expose every submission (including
+    # contact details) to any signed-in account.
+    mine = [a for a in ADS if a.get("ownerId") == user["id"]]
+    return {"success": True, "ads": mine}
 
 
 @router.post("/advertisement")
 async def ads_submit(req: Request, authorization: str = Header(default="")):
+    user, err = _user(authorization)
+    if err:
+        return err
     body = await req.json()
     if not (body.get("productName") or "").strip():
         return JSONResponse({"error": "Product name is required."}, 400)
     record = {
         "id": secrets.token_hex(8),
+        "ownerId": user["id"],
         "productName": body.get("productName"),
         "productDetails": body.get("productDetails"),
         "pricing": body.get("pricing"),

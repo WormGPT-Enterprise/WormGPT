@@ -7,14 +7,40 @@ import datetime
 import secrets
 import time
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import JSONResponse
 
-from store import API_KEYS, REQUEST_LOGS, token_from_header, user_for
+import store
+from store import API_KEYS, REQUEST_LOGS, register_key, token_from_header, user_for
 
 router = APIRouter(prefix="/api/platform", tags=["platform"])
 
 PRICE_PER_1K = 0.0002
+
+# The analytics chart renders one bucket per requested day; an unbounded
+# `days` built 100k buckets (~10 MB, ~2s) and 1e9 crashed the worker.
+MAX_USAGE_DAYS = 90
+# /logs accepts a limit; keep it in step with the stored cap.
+MAX_LOG_ROWS = store.MAX_LOG_ROWS
+
+
+def _parse_spend_limit(value):
+    """Return a non-negative float, or None when the client sends no limit.
+
+    Raises ValueError for anything that is not a finite number: a string like
+    "abc" used to be stored verbatim and then blew up every later chat request
+    with a 500 when ``float()`` ran inside the limit check.
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        raise ValueError("spendLimitUsd must be a number.")
+    number = float(value)
+    if number != number or number in (float("inf"), float("-inf")):
+        raise ValueError("spendLimitUsd must be a finite number.")
+    if number < 0:
+        raise ValueError("spendLimitUsd cannot be negative.")
+    return number
 
 
 def _auth(authorization: str):
@@ -37,8 +63,8 @@ def _mask(key: str) -> str:
 
 
 def _public(record: dict) -> dict:
-    """Key records for listing: never expose the raw secret."""
-    return {k: v for k, v in record.items() if k != "key"}
+    """Key records for listing: never expose the raw secret or its hash."""
+    return {k: v for k, v in record.items() if k not in ("key", "keyHash")}
 
 
 def _new_key_record(name: str, env: str, spend_limit):
@@ -49,8 +75,11 @@ def _new_key_record(name: str, env: str, spend_limit):
     return {
         "id": secrets.token_hex(8),
         "name": name,
-        "env": env,
+        "env": "live" if env == "live" else "test",
+        # Only the hash is stored; the raw secret exists solely in the POST
+        # response. Auth looks the hash up in the index (O(1), no scanning).
         "key": secret,
+        "keyHash": store.key_hash(secret),
         "keyHint": _mask(secret),
         "status": "active",
         "createdAt": int(time.time() * 1000),
@@ -79,8 +108,14 @@ async def create_key(req: Request, authorization: str = Header(default="")):
     name = (body.get("name") or "").strip()
     if not name:
         return JSONResponse({"error": "Key name is required."}, 400)
-    record = _new_key_record(name, body.get("env", "live"), body.get("spendLimitUsd"))
+    try:
+        spend_limit = _parse_spend_limit(body.get("spendLimitUsd"))
+    except (TypeError, ValueError):
+        return JSONResponse(
+            {"error": "spendLimitUsd must be a non-negative number."}, 400)
+    record = _new_key_record(name, body.get("env", "live"), spend_limit)
     API_KEYS.setdefault(_uid(user), []).insert(0, record)
+    register_key(_uid(user), record)
     return {"success": True, "key": record, "message": "API key generated successfully."}
 
 
@@ -90,9 +125,18 @@ async def update_key(req: Request, authorization: str = Header(default="")):
     if err:
         return err
     body = await req.json()
+    if "spendLimitUsd" in body:
+        try:
+            spend_limit = _parse_spend_limit(body.get("spendLimitUsd"))
+        except (TypeError, ValueError):
+            return JSONResponse(
+                {"error": "spendLimitUsd must be a non-negative number."}, 400)
+    else:
+        spend_limit = None
     for record in API_KEYS.get(_uid(user), []):
         if record["id"] == body.get("id"):
-            record["spendLimitUsd"] = body.get("spendLimitUsd")
+            if "spendLimitUsd" in body:
+                record["spendLimitUsd"] = spend_limit
             return {"success": True, "key": _public(record)}
     return JSONResponse({"error": "API key not found."}, 404)
 
@@ -104,12 +148,19 @@ async def delete_key(id: str = "", action: str = "delete",
     if err:
         return err
     keys = API_KEYS.get(_uid(user), [])
-    API_KEYS[_uid(user)] = [k for k in keys if k["id"] != id]
+    remaining = [k for k in keys if k["id"] != id]
+    if len(remaining) == len(keys):
+        return JSONResponse({"error": "API key not found."}, 404)
+    for k in keys:
+        if k["id"] == id:
+            store.KEY_INDEX.pop(k.get("keyHash", ""), None)
+    API_KEYS[_uid(user)] = remaining
     return {"success": True}
 
 
 @router.get("/usage")
-async def usage(days: int = 14, authorization: str = Header(default="")):
+async def usage(days: int = Query(default=14, ge=1, le=MAX_USAGE_DAYS),
+                authorization: str = Header(default="")):
     user, err = _auth(authorization)
     if err:
         return err
@@ -147,7 +198,8 @@ async def usage(days: int = 14, authorization: str = Header(default="")):
 
 
 @router.get("/logs")
-async def logs(limit: int = 50, authorization: str = Header(default="")):
+async def logs(limit: int = Query(default=50, ge=1, le=MAX_LOG_ROWS),
+               authorization: str = Header(default="")):
     user, err = _auth(authorization)
     if err:
         return err

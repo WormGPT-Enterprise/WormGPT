@@ -9,6 +9,8 @@ the host (python3, node, gcc, g++, php, bash).
 Only the languages below are ever invoked, always via an argument vector (no
 shell), inside a temporary directory that is removed afterwards.
 """
+import os
+import resource
 import shutil
 import subprocess
 import tempfile
@@ -16,6 +18,42 @@ from pathlib import Path
 
 TIMEOUT_SECONDS = 20
 MAX_OUTPUT_CHARS = 60_000
+
+# The runner executes user-supplied code on the host, so it is not a real
+# sandbox. These limits at least stop the obvious abuses: the child inherits
+# the server's environment (which holds NVIDIA_API_KEY after load_dotenv), and
+# an unbounded child can take the worker down.
+SECRET_HINTS = ("KEY", "SECRET", "TOKEN", "PASSWORD", "PASSWD", "CREDENTIAL")
+# Memory and CPU caps for the child process.
+CHILD_ADDRESS_SPACE = 1_500_000_000   # ~1.5 GB
+CHILD_CPU_SECONDS = TIMEOUT_SECONDS * 2
+
+
+def _child_env() -> dict:
+    """Environment for the child: drop anything that looks like a credential."""
+    env = {}
+    for name, value in os.environ.items():
+        upper = name.upper()
+        if any(hint in upper for hint in SECRET_HINTS):
+            continue
+        env[name] = value
+    # Keep the interpreters usable without leaking the parent's secrets.
+    env.setdefault("HOME", "/tmp")
+    env.setdefault("PATH", os.environ.get("PATH", "/usr/bin:/bin"))
+    return env
+
+
+def _apply_limits():  # pragma: no cover - runs in the forked child
+    try:
+        resource.setrlimit(resource.RLIMIT_AS,
+                           (CHILD_ADDRESS_SPACE, CHILD_ADDRESS_SPACE))
+        resource.setrlimit(resource.RLIMIT_CPU,
+                           (CHILD_CPU_SECONDS, CHILD_CPU_SECONDS))
+        resource.setrlimit(resource.RLIMIT_NPROC, (64, 64))
+        resource.setrlimit(resource.RLIMIT_FSIZE, (16_000_000, 16_000_000))
+    except (ValueError, OSError):
+        pass
+
 
 # language -> (argv, filename) for a single-file run. `{f}` is the file path.
 INTERPRETERS = {
@@ -138,7 +176,8 @@ def run_files(files: list[dict], entry: str | None = None) -> dict:
                         "error": f"'{compile_argv[0]}' is not installed on this server."}
             compile_argv = [a.replace("{f}", chosen) for a in compile_argv]
             comp = subprocess.run(compile_argv, cwd=workdir, capture_output=True,
-                                  text=True, timeout=TIMEOUT_SECONDS)
+                                  text=True, timeout=TIMEOUT_SECONDS,
+                                  env=_child_env(), preexec_fn=_apply_limits)
             if comp.returncode != 0:
                 out, cut = _truncate(comp.stdout + comp.stderr)
                 return {"ok": False, "language": language, "entry": chosen,
@@ -156,7 +195,8 @@ def run_files(files: list[dict], entry: str | None = None) -> dict:
             cmd = [a.replace("{f}", chosen) for a in argv]
 
         proc = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True,
-                              timeout=TIMEOUT_SECONDS)
+                              timeout=TIMEOUT_SECONDS,
+                              env=_child_env(), preexec_fn=_apply_limits)
         stdout, cut1 = _truncate(proc.stdout)
         stderr, cut2 = _truncate(proc.stderr)
         return {"ok": proc.returncode == 0, "language": language, "entry": chosen,
